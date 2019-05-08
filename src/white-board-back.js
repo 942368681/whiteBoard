@@ -7,6 +7,7 @@ import { N2SVG } from './components/n2svg/n2svg';
 
 
 (function() {
+    var lastTime = 0;
     var vendors = ['ms', 'moz', 'webkit', 'o'];
     for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
         window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
@@ -163,6 +164,7 @@ import { N2SVG } from './components/n2svg/n2svg';
                     return alert("未知类型控件");
                     break;
             }
+            // BOARD_ARR.push(info);
             this.wrapDom.appendChild(dom);
             if (initDrag) new Drag(dom, this.wrapDom);
         }
@@ -181,10 +183,8 @@ import { N2SVG } from './components/n2svg/n2svg';
             lineWidth: obj.size || 5,
             lineCap: "round"
         };
-        this.isDrawing = false;
         this.coords = {};
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
-        this.locus = null;
         this.initCtx();
         this.initDrawEvent();
         this.drawingContent();
@@ -200,80 +200,79 @@ import { N2SVG } from './components/n2svg/n2svg';
         },
         // 基础绘图功能
         initDrawEvent: function () {
-            var _self = this;
-            
-            this.el.addEventListener('touchstart', function (e) {
-                _self.touchStart.call(_self, e, _self.getInputCoords(e));
-            });
-
-            this.el.addEventListener('touchmove', function (e) {
-                _self.touchMove.call(_self, e, _self.getInputCoords(e));
-            });
-
-            this.el.addEventListener('touchend', function (e) {
-                _self.touchEnd.call(_self, e);
-            });
-
+            // this.el.onmousedown = this.drawStart.bind(this);
+            this.el.addEventListener('touchstart', this.drawStart.bind(this));
             if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
-        // 触摸事件开始
-        touchStart: function (e, coords) {
-            this.isDrawing = true;
+        // 落笔
+        drawStart: function (ev) {
+            var ev = ev || w.event;
+            var x = ev.offsetX || ev.touches[0].pageX.toFixed(0) - this.el.getBoundingClientRect().left;
+            var y = ev.offsetY || ev.touches[0].pageY.toFixed(0) - this.el.getBoundingClientRect().top;
+            // this.ctx.beginPath();
+            // this.ctx.moveTo(x, y);
+            // console.log(x, y);
+            var coords = this._getInputCoords(ev);
             this.coords.current = this.coords.old = coords;
-            this.coords.oldMid = this.getMidInputCoords(coords);
+            this.coords.oldMid = this._getMidInputCoords(coords);
+            // this.drawing();
+            if (!window.requestAnimationFrame) this.drawing();
+
+
+            // 每次落笔创建一个轨迹对象记录轨迹以输出为svg path格式,存放在当前层画布对象的content中
+            var locus = { path: 'M'+ x +' '+ y +'' };
+            this.info.content.push(locus);
             
-            console.log(this.info);
-            console.log(this.coords);
+            // this.el.onmousemove = this.drawMove.bind(this, locus);
+            // d.onmouseup = this.drawEnd.bind(this, locus);
 
-            this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
-
-            if (!window.requestAnimationFrame) this.drawing();
-    
-            e.stopPropagation();
-            e.preventDefault();
+            this.el.addEventListener('touchmove', this.drawMove.bind(this, locus));
+            d.addEventListener('touchend', this.drawEnd.bind(this, locus));
         },
-        // 触摸移动
-        touchMove: function (e, coords) {
+        // 移动画笔
+        drawMove: function (locus, ev) {
+            var ev = ev || w.event;
+            var x = ev.offsetX || ev.touches[0].pageX.toFixed(0) - this.el.getBoundingClientRect().left;
+            var y = ev.offsetY || ev.touches[0].pageY.toFixed(0) - this.el.getBoundingClientRect().top;
+
+            locus.path = locus.path + 'L'+ x +' '+ y +'';
+
+            console.log(x, y);
+
+            // this.ctx.lineTo(x, y);
+            // this.ctx.stroke();
+
+            var coords = this._getInputCoords(ev);
             this.coords.current = coords;
-
-            this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
-    
+            // this.drawing();
             if (!window.requestAnimationFrame) this.drawing();
-
-            // console.log(this.coords);
-    
-            e.stopPropagation();
-            e.preventDefault();
         },
-        // 触摸结束
-        touchEnd: function (e) {
-            if (this.isDrawing && (!e.touches || e.touches.length === 0)) {
-                this.isDrawing = false;
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            this.info.content.push(this.locus);
-            console.log(JSON.stringify(this.info.content));
+        // 结束绘画
+        drawEnd: function () {
+            // this.el.onmousemove = d.onmouseup = null;
+            // this.el.ontouchmove = d.ontouchend = null;
+
+            this.ctx.closePath();
+
+            // console.log(JSON.stringify(this.info.content));
+            // console.log(this.info);
         },
 
         drawing: function () {
-            if (this.isDrawing) {
-                console.log('绘制中...');
-                var currentMid = this.getMidInputCoords(this.coords.current);
+            var currentMid = this._getMidInputCoords(this.coords.current);
+            this.ctx.beginPath();
+            this.ctx.moveTo(currentMid.x, currentMid.y);
+            this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
+            // this.ctx.lineTo(currentMid.x, currentMid.y);
+            this.ctx.stroke();
 
-                this.ctx.beginPath();
-                this.ctx.moveTo(currentMid.x, currentMid.y);
-                this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
-                this.ctx.stroke();
-    
-                this.coords.old = this.coords.current;
-                this.coords.oldMid = currentMid;
-            }
-    
+            this.coords.old = this.coords.current;
+            this.coords.oldMid = currentMid;
+
             if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
 
-        getInputCoords: function (e) {
+        _getInputCoords: function(e) {
             e = e.originalEvent ? e.originalEvent : e;
             var
                 rect = this.el.getBoundingClientRect(),
@@ -293,17 +292,18 @@ import { N2SVG } from './components/n2svg/n2svg';
             x *= (width / rect.width);
             y *= (height / rect.height);
             return {
-                x: Number(x.toFixed(0)),
-                y: Number(y.toFixed(0))
+                x: x,
+                y: y
             };
         },
     
-        getMidInputCoords: function (coords) {
+        _getMidInputCoords: function(coords) {
             return {
                 x: this.coords.old.x + coords.x>>1,
                 y: this.coords.old.y + coords.y>>1
             };
         },
+
 
         // 更改设置
         setUp: function (settings) {

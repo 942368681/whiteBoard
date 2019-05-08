@@ -1,6 +1,6 @@
 {
   "name": "white-board-pro",
-  "version": "1.0.8",
+  "version": "1.1.5",
   "description": "web画写板控件",
   "main": "dist/white-board.min.js",
   "scripts": {
