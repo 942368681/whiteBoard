@@ -214,6 +214,18 @@ import { N2SVG } from './components/n2svg/n2svg';
                 _self.touchEnd.call(_self, e);
             });
 
+            this.el.addEventListener('mousedown', function (e) {
+                _self.touchStart.call(_self, e, _self.getInputCoords(e));
+            });
+
+            this.el.addEventListener('mousemove', function (e) {
+                _self.touchMove.call(_self, e, _self.getInputCoords(e));
+            });
+
+            this.el.addEventListener('mouseup', function (e) {
+                _self.touchEnd.call(_self, e);
+            });
+
             if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
         // 触摸事件开始
