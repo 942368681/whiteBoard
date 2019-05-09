@@ -84,6 +84,7 @@ import { N2SVG } from './components/n2svg/n2svg';
                 this.createCanvas(item);
             }
 
+            // 测试多媒体控件dom接入
             /* var testBtn = document.createElement('button');
             testBtn.innerText = "img";
             testBtn.style.position = 'absolute';
@@ -94,6 +95,17 @@ import { N2SVG } from './components/n2svg/n2svg';
                 _self.createMediaDom('N2', [{"path":"M21 23L23 23L28 26L33 29L39 30L42 32L45 33L46 34L47 34L47 35L48 35L49 36"}], true);
                 // _self.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
             }; */
+
+            // 测试加纸
+            /* var testBtn = document.createElement('button');
+            testBtn.innerText = "addPage";
+            testBtn.style.position = 'absolute';
+            testBtn.style.zIndex = 999;
+            this.wrapDom.appendChild(testBtn);
+            var _self = this;
+            testBtn.onclick = function () {
+                _self.addPage();
+            };  */
         },
 
         // 单个画布的创建
@@ -112,7 +124,13 @@ import { N2SVG } from './components/n2svg/n2svg';
             parentEl.appendChild(canvas);
             
             // 初始化画板对象
-            obj.canvas = new Canvas(canvas, obj, this.wrapDom);
+            obj.canvas = new Canvas(canvas, obj);
+        },
+
+        // 当前顶层画布加页
+        addPage: function () {
+            this.options.zIndexInfo[0].page += 1;
+            this.initLayout();
         },
 
         // 获取随机位置
@@ -145,7 +163,7 @@ import { N2SVG } from './components/n2svg/n2svg';
                     info.zIndex = this.zIndexTotal;
                     break;
                 case 'video':
-                    return alert("暂不支持");
+                    alert("暂不支持");
                     break;
                 case 'audio':
                     dom = new Audio(data, coordinate, this.zIndexTotal).dom;
@@ -155,12 +173,12 @@ import { N2SVG } from './components/n2svg/n2svg';
                     break;
                 case 'N2':
                     dom = new N2SVG(data, coordinate, this.zIndexTotal).dom;
-                    info.type = "audio";
+                    info.type = "N2";
                     info.dom = dom;
                     info.zIndex = this.zIndexTotal;
                     break;
                 default:
-                    return alert("未知类型控件");
+                    alert("未知类型控件");
                     break;
             }
             this.wrapDom.appendChild(dom);
@@ -172,10 +190,9 @@ import { N2SVG } from './components/n2svg/n2svg';
 
 
     /******************************* 单个canvas画布对象 **********************************/
-    var Canvas = function (el, obj, wrapDom) {
+    var Canvas = function (el, obj) {
         this.el = el;
         this.info = obj;
-        this.wrapDom = wrapDom;
         this.canvasSettings = {
             strokeStyle: obj.color || '#000',
             lineWidth: obj.size || 5,
@@ -246,14 +263,14 @@ import { N2SVG } from './components/n2svg/n2svg';
         },
         // 触摸移动
         touchMove: function (e, coords) {
+            if(!this.isDrawing) return;
+
             this.coords.current = coords;
 
             this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
     
             if (!window.requestAnimationFrame) this.drawing();
 
-            // console.log(this.coords);
-    
             e.stopPropagation();
             e.preventDefault();
         },
@@ -361,11 +378,7 @@ import { N2SVG } from './components/n2svg/n2svg';
                     }
                 }
             }
-        },
-        // 加页
-        addPage: function () {
-
-        },
+        }
     };
     /*************************************************************************/
     
