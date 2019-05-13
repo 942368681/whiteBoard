@@ -79,6 +79,10 @@ import { N2SVG } from './components/n2svg/n2svg';
             this.wrapDom.style.height = maxPage*this.pageHeight + 'px';
             this.wrapDom.style.position = 'relative';
 
+            while (this.wrapDom.children.length) {
+                this.wrapDom.removeChild(this.wrapDom.firstElementChild);
+            }
+
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
                 this.createCanvas(item);
@@ -97,7 +101,7 @@ import { N2SVG } from './components/n2svg/n2svg';
             }; */
 
             // 测试加纸
-            /* var testBtn = document.createElement('button');
+            var testBtn = document.createElement('button');
             testBtn.innerText = "addPage";
             testBtn.style.position = 'absolute';
             testBtn.style.zIndex = 999;
@@ -105,7 +109,7 @@ import { N2SVG } from './components/n2svg/n2svg';
             var _self = this;
             testBtn.onclick = function () {
                 _self.addPage();
-            };  */
+            }; 
         },
 
         // 单个画布的创建
