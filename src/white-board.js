@@ -101,7 +101,7 @@ import { N2SVG } from './components/n2svg/n2svg';
             }; */
 
             // 测试加纸
-            var testBtn = document.createElement('button');
+            /* var testBtn = document.createElement('button');
             testBtn.innerText = "addPage";
             testBtn.style.position = 'absolute';
             testBtn.style.zIndex = 999;
@@ -109,7 +109,7 @@ import { N2SVG } from './components/n2svg/n2svg';
             var _self = this;
             testBtn.onclick = function () {
                 _self.addPage();
-            }; 
+            };  */
         },
 
         // 单个画布的创建
