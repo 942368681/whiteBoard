@@ -119,7 +119,7 @@ if (!Date.now) {
             this.wrapDom.appendChild(testBtn);
             var _self = this;
             testBtn.onclick = function () {
-                _self.createMediaDom('N2', [{"path":"M21 23L23 23L28 26L33 29L39 30L42 32L45 33L46 34L47 34L47 35L48 35L49 36"}], true);
+                _self.createMediaDom('N2', _self.options.zIndexInfo[0].content, true);
                 // _self.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
             }; */
 
@@ -228,7 +228,8 @@ if (!Date.now) {
         this.isDrawing = false;
         this.coords = {};
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
-        this.locus = null;
+        // this.locus = null;
+        this.curve = [];
         this.initCtx();
         this.initDrawEvent();
         this.drawingContent();
@@ -281,7 +282,8 @@ if (!Date.now) {
             console.log(this.info);
             console.log(this.coords);
 
-            this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
+            // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
+            this.curve = [];
 
             if (!window.requestAnimationFrame) this.drawing();
     
@@ -294,7 +296,8 @@ if (!Date.now) {
 
             this.coords.current = coords;
 
-            this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
+            // this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
+            // this.curve.path.push([this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y]);
     
             if (!window.requestAnimationFrame) this.drawing();
 
@@ -308,25 +311,42 @@ if (!Date.now) {
                 e.stopPropagation();
                 e.preventDefault();
             }
-            this.info.content.push(this.locus);
+            // this.info.content.push(this.locus);
+            this.info.content.push(this.curve);
             console.log(JSON.stringify(this.info.content));
         },
 
         drawing: function () {
             if (this.isDrawing) {
-                console.log('绘制中...');
                 var currentMid = this.getMidInputCoords(this.coords.current);
 
                 this.ctx.beginPath();
                 this.ctx.moveTo(currentMid.x, currentMid.y);
                 this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
                 this.ctx.stroke();
-    
+
+                const currentCoords = this.getCurrentCoords(this.coords);
+                // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
+                this.curve.push({
+                    currentMidX: currentMid.x,
+                    currentMidY: currentMid.y,
+                    oldX: currentCoords.old.x,
+                    oldY: currentCoords.old.y,
+                    oldMidX: currentCoords.oldMid.x,
+                    oldMidY: currentCoords.oldMid.y
+                });
+                
                 this.coords.old = this.coords.current;
                 this.coords.oldMid = currentMid;
+
             }
-    
             if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+        },
+
+        getCurrentCoords: function (obj) {
+            var _obj = JSON.stringify(obj);
+            var objClone = JSON.parse(_obj);
+            return objClone;
         },
 
         getInputCoords: function (e) {
@@ -389,7 +409,8 @@ if (!Date.now) {
         // 初始化白板内容
         drawingContent: function () {
             if (!this.info.content.length) return;
-            for (var i = 0, len = this.info.content.length; i < len; i++) {
+
+            /* for (var i = 0, len = this.info.content.length; i < len; i++) {
                 var arr = this.info.content[i].path.split('M')[1].split('L');
                 for (var j = 0, length = arr.length; j < length; j++) {
                     var x = arr[j].split(' ')[0];
@@ -403,6 +424,22 @@ if (!Date.now) {
                         this.ctx.lineTo(x, y);
                         this.ctx.stroke(); 
                     }
+                }
+            } */
+
+            for (var i = 0, len = this.info.content.length; i < len; i++) {
+                var arr = this.info.content[i];
+                for (var j = 0, length = arr.length; j < length; j++) {
+                    var currentMidX = arr[j].currentMidX;
+                    var currentMidY = arr[j].currentMidY;
+                    var oldX = arr[j].oldX;
+                    var oldY = arr[j].oldY;
+                    var oldMidX = arr[j].oldMidX;
+                    var oldMidY = arr[j].oldMidY;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(currentMidX, currentMidY);
+                    this.ctx.quadraticCurveTo(oldX, oldY, oldMidX, oldMidY);
+                    this.ctx.stroke();
                 }
             }
         }

@@ -1,14 +1,26 @@
 import './n2svg.css';
 
 export const N2SVG = function (data, coordinate, Z_INDEX_TOTAL) {
-    this.paths = data;
+    this.data = data;
+    this.paths = [];
     this.coordinate = coordinate;
     this.zIndex = Z_INDEX_TOTAL;
     this.dom = null;
+    this.handleData();
     this.init();
 };
 
 N2SVG.prototype = {
+    handleData: function () {
+        for (var i = 0, len = this.data.length; i < len; i++) {
+            var oPathData = this.data[i];
+            var oPathStr = "";
+            for (var j = 0, length = oPathData.length; j < length; j++) {
+                oPathStr += ' M' + oPathData[j].currentMidX + ',' + oPathData[j].currentMidY + ' Q' + oPathData[j].oldX + ',' + oPathData[j].oldY + ' ' + oPathData[j].oldMidX + ',' + oPathData[j].oldMidY;
+            }
+            this.paths.push({ path: oPathStr });
+        }
+    },
     init: function () {
         this.dom = document.createElement('div');
         this.dom.setAttribute("class", "drag-img");
