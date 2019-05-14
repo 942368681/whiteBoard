@@ -6,11 +6,34 @@ import { Audio } from './components/audio/audio';
 import { N2SVG } from './components/n2svg/n2svg';
 
 
-(function() {
-    var vendors = ['ms', 'moz', 'webkit', 'o'];
-    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame'];
+if (!Date.now) {
+    Date.now = function () {
+        return new Date().getTime();
+    };
+}
+
+(function () {
+    'use strict';
+
+    var vendors = ['webkit', 'moz', 'ms', 'o'];
+    for (var i = 0; i < vendors.length && !window.requestAnimationFrame; ++i) {
+        var vp = vendors[i];
+        window.requestAnimationFrame = window[vp + 'RequestAnimationFrame'];
+        window.cancelAnimationFrame = (window[vp + 'CancelAnimationFrame'] || window[vp + 'CancelRequestAnimationFrame']);
+    }
+    if (/iP(ad|hone|od).*OS 6/.test(window.navigator.userAgent) // iOS6 is buggy
+        ||
+        !window.requestAnimationFrame || !window.cancelAnimationFrame) {
+        var lastTime = 0;
+        window.requestAnimationFrame = function (callback) {
+            var now = Date.now();
+            var nextTime = Math.max(lastTime + 16, now);
+            return setTimeout(function () {
+                    callback(lastTime = nextTime);
+                },
+                nextTime - now);
+        };
+        window.cancelAnimationFrame = clearTimeout;
     }
 }());
 
