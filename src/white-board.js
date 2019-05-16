@@ -275,6 +275,10 @@ if (!Date.now) {
         },
         // 触摸事件开始
         touchStart: function (e, coords) {
+            if (e.touches && e.touches.length > 1) {
+                this.isDrawing = false;
+                return;
+            };
             this.isDrawing = true;
             this.coords.current = this.coords.old = coords;
             this.coords.oldMid = this.getMidInputCoords(coords);
@@ -292,6 +296,10 @@ if (!Date.now) {
         },
         // 触摸移动
         touchMove: function (e, coords) {
+            if (e.touches && e.touches.length > 1) {
+                this.isDrawing = false;
+                return;
+            };
             if(!this.isDrawing) return;
 
             this.coords.current = coords;
