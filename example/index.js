@@ -30,5 +30,9 @@ window.oCanvas = window.WhiteBoard({
             ],
             "other": {}
         } */
-    ]
+    ],
+    "watcher": {
+        wait: 2000,
+        cb: () => console.log('aaaaaaaa')
+    }
 });
