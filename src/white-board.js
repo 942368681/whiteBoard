@@ -151,7 +151,7 @@ if (!Date.now) {
             parentEl.appendChild(canvas);
             
             // 初始化画板对象
-            obj.canvas = new Canvas(canvas, obj, watcher);
+            new Canvas(canvas, obj, watcher);
         },
 
         // 当前顶层画布加页
