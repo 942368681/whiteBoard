@@ -131,7 +131,9 @@ if (!Date.now) {
             this.wrapDom.appendChild(testBtn);
             var _self = this;
             testBtn.onclick = function () {
-                _self.addPage();
+                _self.setUp({
+                    penType: 'fountain-pen'
+                });
             };  */
         },
 
@@ -156,7 +158,14 @@ if (!Date.now) {
 
         // 当前顶层画布加页
         addPage: function () {
+            console.log(this.options.zIndexInfo[0]);
             this.options.zIndexInfo[0].page += 1;
+            this.initLayout();
+        },
+
+        // 当前顶层画布设置更改
+        setUp: function (settings) {
+            this.options.zIndexInfo[0].penType = settings.penType;
             this.initLayout();
         },
 
@@ -222,15 +231,16 @@ if (!Date.now) {
         this.info = obj;
         this.canvasSettings = {
             strokeStyle: obj.color || '#000',
-            lineWidth: obj.size || 5,
-            lineCap: "round"
+            lineWidth: obj.size || 1,
+            lineCap: "round",
+            globalAlpha: obj.penType === 'fluorescent-pen' ? 0.5 : 1
         };
         this.watcher = watcher;
         this.isDrawing = false;
         this.coords = {};
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
         // this.locus = null;
-        this.curve = [];
+        this.curve = null;
         this.initCtx();
         this.initDrawEvent();
         this.drawingContent();
@@ -239,10 +249,12 @@ if (!Date.now) {
     Canvas.prototype = {
         // 初始化画笔样式
         initCtx: function () {
+            console.log(this.canvasSettings);
             this.ctx = this.el.getContext("2d");
             this.ctx.strokeStyle = this.canvasSettings.strokeStyle;
             this.ctx.lineWidth = this.canvasSettings.lineWidth;
             this.ctx.lineCap = this.canvasSettings.lineCap;
+            this.ctx.globalAlpha = this.canvasSettings.globalAlpha;
         },
         // 基础绘图功能
         initDrawEvent: function () {
@@ -302,7 +314,10 @@ if (!Date.now) {
             console.log(this.coords);
 
             // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
-            this.curve = [];
+            this.curve = {
+                path: [],
+                canvasSettings: this.canvasSettings
+            };
 
             if (!window.requestAnimationFrame) this.drawing();
     
@@ -350,7 +365,7 @@ if (!Date.now) {
 
                 const currentCoords = this.getCurrentCoords(this.coords);
                 // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
-                this.curve.push({
+                this.curve.path.push({
                     currentMidX: currentMid.x,
                     currentMidY: currentMid.y,
                     oldX: currentCoords.old.x,
@@ -405,10 +420,10 @@ if (!Date.now) {
         },
 
         // 更改设置
-        setUp: function (settings) {
+        /* setUp: function (settings) {
             this.canvasSettings = Object.assign(this.canvasSettings, settings);
             this.initCtx();
-        },
+        }, */
         // 保存图片(base64)
         saveToBase64: function () {
             var image = new Image();
@@ -451,7 +466,10 @@ if (!Date.now) {
             } */
 
             for (var i = 0, len = this.info.content.length; i < len; i++) {
-                var arr = this.info.content[i];
+                var oPathInfo = this.info.content[i];
+                var arr = oPathInfo.path;
+                this.canvasSettings = oPathInfo.canvasSettings;
+                this.initCtx();
                 for (var j = 0, length = arr.length; j < length; j++) {
                     var currentMidX = arr[j].currentMidX;
                     var currentMidY = arr[j].currentMidY;
@@ -465,6 +483,8 @@ if (!Date.now) {
                     this.ctx.stroke();
                 }
             }
+
+            // this.canvasSettings.penType = this.info.penType;
         }
     };
     /*************************************************************************/
