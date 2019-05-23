@@ -153,6 +153,7 @@ if (!Date.now) {
             parentEl.appendChild(canvas);
             
             // 初始化画板对象
+            // obj.canvas = new Canvas(canvas, obj, watcher);
             new Canvas(canvas, obj, watcher);
         },
 
@@ -269,6 +270,7 @@ if (!Date.now) {
             });
 
             this.el.addEventListener('touchend', function (e) {
+                _self.info.update = true;
                 _self.touchEnd.call(_self, e);
             });
 
@@ -282,6 +284,7 @@ if (!Date.now) {
             });
             
             this.el.addEventListener('mouseup', function (e) {
+                _self.info.update = true;
                 _self.touchEnd.call(_self, e);
             });
             
@@ -294,7 +297,7 @@ if (!Date.now) {
         },
         // 防抖
         debounce: function (func, wait) {
-            let timeout;
+            var timeout;
             return function () {
                 clearTimeout(timeout);
                 timeout = setTimeout(func, wait);
