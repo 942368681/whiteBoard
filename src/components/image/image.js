@@ -11,7 +11,7 @@ export const Image = function (data, coordinate, Z_INDEX_TOTAL) {
 Image.prototype = {
     init: function () {
         this.dom = document.createElement('div');
-        this.dom.setAttribute("class", "drag-img");
+        this.dom.setAttribute("class", "board-drag-img");
         this.dom.style.cssText = "left: " + this.coordinate.x + "px; top: " + this.coordinate.y + "px; z-index: " + this.zIndex + "";
         var img = document.createElement('img');
         img.setAttribute('src', this.url);

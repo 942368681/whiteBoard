@@ -26,7 +26,7 @@ Audio.prototype = {
 
     createDom: function () {
         this.dom = document.createElement('div');
-        this.dom.setAttribute("class", "audio-player");
+        this.dom.setAttribute("class", "board-audio-player");
         this.dom.style.cssText = "left: " + this.coordinate.x + "px; top: " + this.coordinate.y + "px; z-index: " + this.zIndex + "";
         this.dom.setAttribute('src', this.url);
 
@@ -36,32 +36,32 @@ Audio.prototype = {
         this.audio = audio;
 
         var controls = document.createElement('div');
-        controls.setAttribute("class", "controls");
+        controls.setAttribute("class", "board-controls");
 
         var btnL = document.createElement('div');
-        btnL.setAttribute("class", "btns-l");
+        btnL.setAttribute("class", "board-btns-l");
         this.btnL = btnL;
 
         var palyBtn = document.createElement('i');
-        palyBtn.setAttribute("class", "iconfont iconziyuanldpi2 play");
+        palyBtn.setAttribute("class", "boardIcon iconziyuanldpi2 play");
 
         var rate = document.createElement('div');
-        rate.setAttribute("class", "rate");
+        rate.setAttribute("class", "board-rate");
 
         var rateLine = document.createElement('div');
-        rateLine.setAttribute("class", "rate-line");
+        rateLine.setAttribute("class", "board-rate-line");
         this.rateLine = rateLine;
 
         var completeLine = document.createElement('div');
-        completeLine.setAttribute("class", "complete-line");
+        completeLine.setAttribute("class", "board-complete-line");
         this.completeLine = completeLine;
 
         var point = document.createElement('div');
-        point.setAttribute("class", "point");
+        point.setAttribute("class", "board-point");
         this.point = point;
 
         var time = document.createElement('div');
-        time.setAttribute("class", "time");
+        time.setAttribute("class", "board-time");
 
         var timeS = document.createElement('b');
         this.timeS = timeS;
@@ -70,11 +70,11 @@ Audio.prototype = {
         this.timeE = timeE;
 
         var btnR = document.createElement('div');
-        btnR.setAttribute("class", "btns-r"); 
+        btnR.setAttribute("class", "board-btns-r"); 
         this.btnR = btnR;
 
         var volumeBtn = document.createElement('i');
-        volumeBtn.setAttribute("class", "iconfont iconziyuanldpi3 volume");
+        volumeBtn.setAttribute("class", "boardIcon iconziyuanldpi3 volume");
 
         this.dom.appendChild(audio);
         this.dom.appendChild(controls);
@@ -112,10 +112,10 @@ Audio.prototype = {
     playControl: function () {
         if (this.audio.paused) {
             this.audio.play();
-            this.btnL.getElementsByTagName('i')[0].classList.value = "iconfont iconziyuanldpi1 pause";
+            this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon iconziyuanldpi1 pause";
         } else {
             this.audio.pause();
-            this.btnL.getElementsByTagName('i')[0].classList.value = "iconfont iconziyuanldpi2 play";
+            this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon iconziyuanldpi2 play";
         }
     },
 
@@ -138,7 +138,7 @@ Audio.prototype = {
         this.audio.currentTime = 0;
         this.timeS.innerText = "00:00";
         this.audio.pause();
-        this.btnL.getElementsByTagName('i')[0].classList.value = "iconfont iconziyuanldpi2 play";
+        this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon iconziyuanldpi2 play";
     },
 
     //转换音频时长显示

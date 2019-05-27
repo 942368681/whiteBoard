@@ -123,6 +123,17 @@ if (!Date.now) {
                 // _self.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
             }; */
 
+            // 测试多媒体控件dom接入（音频）
+            /* var testBtn = document.createElement('button');
+            testBtn.innerText = "audio";
+            testBtn.style.position = 'absolute';
+            testBtn.style.zIndex = 999;
+            this.wrapDom.appendChild(testBtn);
+            var _self = this;
+            testBtn.onclick = function () {
+                _self.createMediaDom('audio', "", true);
+            }; */
+
             // 测试加纸
             /* var testBtn = document.createElement('button');
             testBtn.innerText = "addPage";
@@ -146,7 +157,8 @@ if (!Date.now) {
             this.wrapDom.appendChild(parentEl);
 
             var canvas = d.createElement('canvas');
-            
+            console.log(parentEl);
+            console.log(parentEl.getBoundingClientRect());
             canvas.setAttribute('id', 'board-' + obj.zIndex);
             canvas.width = parentEl.getBoundingClientRect().width;
             canvas.height = parentEl.getBoundingClientRect().height;
@@ -243,8 +255,10 @@ if (!Date.now) {
         // this.locus = null;
         this.curve = null;
         this.initCtx();
-        this.initDrawEvent();
         this.drawingContent();
+        if (!obj.disabled) {
+            this.initDrawEvent();
+        }
     };
 
     Canvas.prototype = {

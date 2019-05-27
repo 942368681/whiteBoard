@@ -4,6 +4,7 @@ window.oCanvas = window.WhiteBoard({
     "toolBar": true,
     "zIndexInfo": [{
             "penType": "fountain-pen",
+            // "disabled": true,
             "update": false,
             "color": "#039be5",
             "page": 1,

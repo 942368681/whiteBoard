@@ -23,7 +23,7 @@ N2SVG.prototype = {
     },
     init: function () {
         this.dom = document.createElement('div');
-        this.dom.setAttribute("class", "drag-img");
+        this.dom.setAttribute("class", "board-drag-svg");
         this.dom.style.cssText = "left: " + this.coordinate.x + "px; top: " + this.coordinate.y + "px; z-index: " + this.zIndex + "";
         var svgNodes = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svgNodes.setAttribute('width', 100);

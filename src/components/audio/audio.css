@@ -1,5 +1,5 @@
-.btns-l i,
-.btns-r i {
+.board-btns-l i,
+.board-btns-r i {
     cursor: pointer;
     display: block;
     width: 100%;
@@ -7,7 +7,7 @@
     font-size: 0.16rem;
 }
 
-.audio-player {
+.board-audio-player {
     width: 2rem;
     height: 0.5rem;
     position: absolute;
@@ -15,7 +15,7 @@
     box-shadow: 0 0 6px #999;
 }
 
-.controls {
+.board-controls {
     color: #333;
     width: 100%;
     height: 100%;
@@ -26,14 +26,14 @@
     justify-content: center;
 }
 
-.btns-r,
-.btns-l {
+.board-btns-r,
+.board-btns-l {
     height: 32%;
     display: flex;
     align-items: center;
 }
 
-.rate {
+.board-rate {
     width: 60%;
     height: 100%;
     padding-top: 0.21rem;
@@ -44,17 +44,17 @@
     justify-content: space-around;
 }
 
-.rate .time {
+.board-rate .board-time {
     font-size: 0.12rem;
     display: flex;
     justify-content: space-between;
 }
 
-.rate .time b {
+.board-rate .board-time b {
     font-weight: normal;
 }
 
-.rate-line {
+.board-rate-line {
     width: 100%;
     height: 0.02rem;
     border-radius: 0.01rem;
@@ -63,7 +63,7 @@
     cursor: pointer;
 }
 
-.complete-line {
+.board-complete-line {
     position: absolute;
     width: 0%;
     height: 100%;
@@ -71,7 +71,7 @@
     border-radius: 0.01rem;
 }
 
-.point {
+.board-point {
     position: absolute;
     width: 0.06rem;
     height: 0.06rem;

@@ -1,11 +1,11 @@
-.drag-img {
+.board-drag-img {
     width: 100px;
     height: 100px;
     position: absolute;
     background: #f1f1f1;
     box-shadow: 0 0 0.04rem #999;
 }
-.drag-img img {
+.board-drag-img img {
     border: 0;
     display: block;
     width: 100%;
