@@ -54,6 +54,8 @@ if (!Date.now) {
         this.pageHeight = this.wrapDom.getBoundingClientRect().height;
         // 总层级(画板层级数和多媒体控件数的总和)
         this.zIndexTotal = this.getAllZindex(o.zIndexInfo),
+        // 画板各层级cavas对象实例
+        this.canvasObj = [];
         // 初始化布局
         this.initLayout();
     };
@@ -157,8 +159,6 @@ if (!Date.now) {
             this.wrapDom.appendChild(parentEl);
 
             var canvas = d.createElement('canvas');
-            console.log(parentEl);
-            console.log(parentEl.getBoundingClientRect());
             canvas.setAttribute('id', 'board-' + obj.zIndex);
             canvas.width = parentEl.getBoundingClientRect().width;
             canvas.height = parentEl.getBoundingClientRect().height;
@@ -166,19 +166,14 @@ if (!Date.now) {
             
             // 初始化画板对象
             // obj.canvas = new Canvas(canvas, obj, watcher);
-            new Canvas(canvas, obj, watcher);
+            var c = new Canvas(canvas, obj, watcher);
+            this.canvasObj.push(c);
         },
 
         // 当前顶层画布加页
         addPage: function () {
             console.log(this.options.zIndexInfo[0]);
             this.options.zIndexInfo[0].page += 1;
-            this.initLayout();
-        },
-
-        // 当前顶层画布设置更改
-        setUp: function (settings) {
-            this.options.zIndexInfo[0].penType = settings.penType;
             this.initLayout();
         },
 
@@ -243,10 +238,10 @@ if (!Date.now) {
         this.el = el;
         this.info = obj;
         this.canvasSettings = {
-            strokeStyle: obj.color || '#000',
-            lineWidth: obj.size || 1,
-            lineCap: "round",
-            globalAlpha: obj.penType === 'fluorescent-pen' ? 0.5 : 1
+            strokeStyle: '',
+            lineWidth: '',
+            lineCap: '',
+            globalAlpha: ''
         };
         this.watcher = watcher;
         this.isDrawing = false;
@@ -254,6 +249,7 @@ if (!Date.now) {
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
         // this.locus = null;
         this.curve = null;
+        this.setUp(this.initSettings(obj));
         this.initCtx();
         this.drawingContent();
         if (!obj.disabled) {
@@ -262,6 +258,48 @@ if (!Date.now) {
     };
 
     Canvas.prototype = {
+        // 初始设置参数获取
+        initSettings: function (obj) {
+            var o = null;
+            if (obj.content && obj.content.length) {
+                this.setUp(obj.content[obj.content.length - 1].canvasSettings);
+            } else {
+                o = {
+                    strokeStyle: '#468EE5',
+                    lineWidth: 2,
+                    lineCap: "round",
+                    globalAlpha: 1
+                }
+            }
+            return o;
+        },
+        // 当前画布设置更改
+        setUp: function (settings) {
+            for (var key in settings) {
+                if (key === 'penType') {
+                    this.canvasSettings.globalAlpha = this.getAlphaByPenType(settings[key]);
+                } else {
+                    this.canvasSettings[key] = settings[key];
+                }
+            }
+        },
+        // 根据笔的类型获取透明度设置
+        getAlphaByPenType: function (penType) {
+            var alpha;
+            switch (penType) {
+                case 'fountain-pen':
+                    alpha = 1;
+                    break;
+                case 'fluorescent-pen':
+                    alpha = 0.5;
+                    break;
+                default:
+                    alpha = 1;
+                    break;
+            }
+            return alpha;
+        },
+        // 根据透明度获取笔的类型
         // 初始化画笔样式
         initCtx: function () {
             console.log(this.canvasSettings);
@@ -331,6 +369,7 @@ if (!Date.now) {
             console.log(this.coords);
 
             // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
+
             this.curve = {
                 path: [],
                 canvasSettings: this.canvasSettings
@@ -368,7 +407,7 @@ if (!Date.now) {
             }
             // this.info.content.push(this.locus);
             this.info.content.push(this.curve);
-            console.log(JSON.stringify(this.info.content));
+            // console.log(JSON.stringify(this.info.content));
         },
 
         drawing: function () {
@@ -436,11 +475,6 @@ if (!Date.now) {
             };
         },
 
-        // 更改设置
-        /* setUp: function (settings) {
-            this.canvasSettings = Object.assign(this.canvasSettings, settings);
-            this.initCtx();
-        }, */
         // 保存图片(base64)
         saveToBase64: function () {
             var image = new Image();
@@ -485,7 +519,7 @@ if (!Date.now) {
             for (var i = 0, len = this.info.content.length; i < len; i++) {
                 var oPathInfo = this.info.content[i];
                 var arr = oPathInfo.path;
-                this.canvasSettings = oPathInfo.canvasSettings;
+                this.setUp(oPathInfo.canvasSettings);
                 this.initCtx();
                 for (var j = 0, length = arr.length; j < length; j++) {
                     var currentMidX = arr[j].currentMidX;
