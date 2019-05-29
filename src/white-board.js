@@ -241,7 +241,8 @@ if (!Date.now) {
             strokeStyle: '',
             lineWidth: '',
             lineCap: '',
-            globalAlpha: ''
+            globalAlpha: '',
+            inputType: ''
         };
         this.watcher = watcher;
         this.isDrawing = false;
@@ -268,38 +269,20 @@ if (!Date.now) {
                     strokeStyle: '#468EE5',
                     lineWidth: 2,
                     lineCap: "round",
-                    globalAlpha: 1
+                    globalAlpha: 1,
+                    inputType: 'fountain-pen'
                 }
             }
             return o;
         },
         // 当前画布设置更改
         setUp: function (settings) {
+            console.log('传入的setting', settings);
             for (var key in settings) {
-                if (key === 'penType') {
-                    this.canvasSettings.globalAlpha = this.getAlphaByPenType(settings[key]);
-                } else {
-                    this.canvasSettings[key] = settings[key];
-                }
+                this.canvasSettings[key] = settings[key];
             }
+            this.initCtx();
         },
-        // 根据笔的类型获取透明度设置
-        getAlphaByPenType: function (penType) {
-            var alpha;
-            switch (penType) {
-                case 'fountain-pen':
-                    alpha = 1;
-                    break;
-                case 'fluorescent-pen':
-                    alpha = 0.5;
-                    break;
-                default:
-                    alpha = 1;
-                    break;
-            }
-            return alpha;
-        },
-        // 根据透明度获取笔的类型
         // 初始化画笔样式
         initCtx: function () {
             console.log(this.canvasSettings);
@@ -369,10 +352,9 @@ if (!Date.now) {
             console.log(this.coords);
 
             // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
-
             this.curve = {
                 path: [],
-                canvasSettings: this.canvasSettings
+                canvasSettings: Object.assign({}, this.canvasSettings)
             };
 
             if (!window.requestAnimationFrame) this.drawing();
