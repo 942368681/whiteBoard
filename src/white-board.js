@@ -144,9 +144,7 @@ if (!Date.now) {
             this.wrapDom.appendChild(testBtn);
             var _self = this;
             testBtn.onclick = function () {
-                _self.setUp({
-                    penType: 'fountain-pen'
-                });
+
             };  */
         },
 
@@ -266,11 +264,11 @@ if (!Date.now) {
                 this.setUp(obj.content[obj.content.length - 1].canvasSettings);
             } else {
                 o = {
-                    strokeStyle: '#468EE5',
-                    lineWidth: 2,
+                    strokeStyle: obj.color || '#468EE5',
+                    lineWidth: obj.size || 2,
                     lineCap: "round",
                     globalAlpha: 1,
-                    inputType: 'fountain-pen'
+                    inputType: obj.inputType || 'fountain-pen'
                 }
             }
             return o;
@@ -290,7 +288,7 @@ if (!Date.now) {
             this.ctx.strokeStyle = this.canvasSettings.strokeStyle;
             this.ctx.lineWidth = this.canvasSettings.lineWidth;
             this.ctx.lineCap = this.canvasSettings.lineCap;
-            this.ctx.globalAlpha = this.canvasSettings.globalAlpha;
+            this.ctx.globalAlpha = this.canvasSettings.inputType === 'fluorescent-pen' ? 0.5 : 1;
         },
         // 基础绘图功能
         initDrawEvent: function () {
@@ -516,8 +514,6 @@ if (!Date.now) {
                     this.ctx.stroke();
                 }
             }
-
-            // this.canvasSettings.penType = this.info.penType;
         }
     };
     /*************************************************************************/
