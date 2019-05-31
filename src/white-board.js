@@ -110,7 +110,7 @@ if (!Date.now) {
 
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
-                this.createCanvas(item, this.options.watcher);
+                this.createCanvas(item, this.options.watcher, this.options.callBack);
             }
 
             // 测试多媒体控件dom接入
@@ -146,10 +146,21 @@ if (!Date.now) {
             testBtn.onclick = function () {
 
             };  */
+
+            // 测试橡皮擦 && 画笔
+            /* var testBtn = document.createElement('button');
+            testBtn.innerText = "橡皮";
+            testBtn.style.position = 'absolute';
+            testBtn.style.zIndex = 999;
+            this.wrapDom.appendChild(testBtn);
+            var _self = this;
+            testBtn.onclick = function () {
+                _self.canvasObj[0].setUp({ inputType: 'rubber' });
+            }; */
         },
 
         // 单个画布的创建
-        createCanvas: function (obj, watcher) {
+        createCanvas: function (obj, watcher, callBack) {
             var parentEl = d.createElement('div');
             parentEl.setAttribute('class', 'board-box board-box-' + obj.zIndex);
             parentEl.style.height = (obj.page || 1)*this.pageHeight + 'px';
@@ -163,8 +174,7 @@ if (!Date.now) {
             parentEl.appendChild(canvas);
             
             // 初始化画板对象
-            // obj.canvas = new Canvas(canvas, obj, watcher);
-            var c = new Canvas(canvas, obj, watcher);
+            var c = new Canvas(canvas, obj, watcher, callBack);
             this.canvasObj.push(c);
         },
 
@@ -232,7 +242,7 @@ if (!Date.now) {
 
 
     /******************************* 单个canvas画布对象 **********************************/
-    var Canvas = function (el, obj, watcher) {
+    var Canvas = function (el, obj, watcher, callBack) {
         this.el = el;
         this.info = obj;
         this.canvasSettings = {
@@ -242,14 +252,15 @@ if (!Date.now) {
             globalAlpha: '',
             inputType: ''
         };
+        this.rubberRange = 5;
         this.watcher = watcher;
+        this.callBack = callBack;
         this.isDrawing = false;
         this.coords = {};
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
         // this.locus = null;
         this.curve = null;
         this.setUp(this.initSettings(obj));
-        this.initCtx();
         this.drawingContent();
         if (!obj.disabled) {
             this.initDrawEvent();
@@ -264,10 +275,10 @@ if (!Date.now) {
                 this.setUp(obj.content[obj.content.length - 1].canvasSettings);
             } else {
                 o = {
-                    strokeStyle: obj.color || '#468EE5',
+                    strokeStyle: obj.color || '#000000',
                     lineWidth: obj.size || 2,
                     lineCap: "round",
-                    globalAlpha: 1,
+                    globalAlpha: obj.inputType && obj.inputType === 'fluorescent-pen' ? 0.5 : 1,
                     inputType: obj.inputType || 'fountain-pen'
                 }
             }
@@ -275,58 +286,112 @@ if (!Date.now) {
         },
         // 当前画布设置更改
         setUp: function (settings) {
-            console.log('传入的setting', settings);
             for (var key in settings) {
                 this.canvasSettings[key] = settings[key];
             }
             this.initCtx();
         },
-        // 初始化画笔样式
+        // 初始化画板功能
         initCtx: function () {
-            console.log(this.canvasSettings);
+            /* if (this.canvasSettings.inputType === 'rubber') { // 橡皮功能
+                this.setCtx('none');
+            } else {
+                this.setCtx('common');
+            } */
             this.ctx = this.el.getContext("2d");
             this.ctx.strokeStyle = this.canvasSettings.strokeStyle;
             this.ctx.lineWidth = this.canvasSettings.lineWidth;
             this.ctx.lineCap = this.canvasSettings.lineCap;
             this.ctx.globalAlpha = this.canvasSettings.inputType === 'fluorescent-pen' ? 0.5 : 1;
         },
+        // 初始化画笔样式
+        setCtx: function (type) {
+            console.log('ttttttttttt', type);
+            switch (type) {
+                case 'common':
+                    this.ctx = this.el.getContext("2d");
+                    this.ctx.strokeStyle = this.canvasSettings.strokeStyle;
+                    this.ctx.lineWidth = this.canvasSettings.lineWidth;
+                    this.ctx.lineCap = this.canvasSettings.lineCap;
+                    this.ctx.globalAlpha = this.canvasSettings.inputType === 'fluorescent-pen' ? 0.5 : 1;
+                    console.log(this.ctx);
+                    break;
+                case 'none':
+                        this.ctx = null;
+                        break;
+                default:
+                    break;
+            }
+        },
         // 基础绘图功能
         initDrawEvent: function () {
             var _self = this;
             
+            // touch事件
             this.el.addEventListener('touchstart', function (e) {
-                _self.touchStart.call(_self, e, _self.getInputCoords(e));
+                if (_self.canvasSettings.inputType !== 'rubber') _self.touchStart.call(_self, e, _self.getInputCoords(e));
             });
 
             this.el.addEventListener('touchmove', function (e) {
-                _self.touchMove.call(_self, e, _self.getInputCoords(e));
+                if (_self.canvasSettings.inputType !== 'rubber') _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
 
             this.el.addEventListener('touchend', function (e) {
-                _self.info.update = true;
-                _self.touchEnd.call(_self, e);
+                if (_self.canvasSettings.inputType !== 'rubber') {
+                    _self.info.update = true;
+                    _self.touchEnd.call(_self, e);
+                }
             });
 
-            
+            // mouse事件
             this.el.addEventListener('mousedown', function (e) {
-                _self.touchStart.call(_self, e, _self.getInputCoords(e));
+                if (_self.canvasSettings.inputType !== 'rubber') _self.touchStart.call(_self, e, _self.getInputCoords(e));
             });
             
             this.el.addEventListener('mousemove', function (e) {
-                _self.touchMove.call(_self, e, _self.getInputCoords(e));
+                if (_self.canvasSettings.inputType !== 'rubber') _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
             
             this.el.addEventListener('mouseup', function (e) {
-                _self.info.update = true;
-                _self.touchEnd.call(_self, e);
+                if (_self.canvasSettings.inputType !== 'rubber') {
+                    _self.info.update = true;
+                    _self.touchEnd.call(_self, e);
+                }
+            });
+
+            // 橡皮擦功能，click事件
+            this.el.addEventListener('click', function (e) {
+                if (_self.canvasSettings.inputType === 'rubber') {
+                    _self.info.update = true;
+                    _self.removeOnePath.call(_self, e, _self.getInputCoords(e));
+                }
             });
             
+            // 监听输入完毕，触发异步回调
             if (_self.watcher) {
                 this.el.addEventListener('touchend', _self.debounce(_self.watcher.cb, _self.watcher.wait));
                 this.el.addEventListener('mouseup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
             }
 
+            // 监听输入开始，触发同步回调
+            if (_self.callBack) {
+                this.el.addEventListener('touchstart', _self.callBack);
+                this.el.addEventListener('mousedown', _self.callBack);
+            }
+
             if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+        },
+        // 去除一条匹配的轨迹
+        removeOnePath: function (e, coords) {
+            /* if (e.touches && e.touches.length > 1) return;
+            if (!this.info.content.length) return;
+            console.log(coords);
+            console.log(JSON.stringify(this.info.content));
+            for (var i = 0, length = this.info.content.length; i < length; i++) {
+                for (var j = 0, len = this.info.content[i].path.length; j < len; j++) {
+                    this.match
+                }
+            } */
         },
         // 防抖
         debounce: function (func, wait) {
@@ -342,6 +407,7 @@ if (!Date.now) {
                 this.isDrawing = false;
                 return;
             };
+
             this.isDrawing = true;
             this.coords.current = this.coords.old = coords;
             this.coords.oldMid = this.getMidInputCoords(coords);

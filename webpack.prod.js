@@ -7,6 +7,7 @@ const path = require('path');
 
 module.exports = merge(baseConfig, {
     entry: './src/white-board.js',
+    devtool: 'cheap-module-eval-source-map',
     output: {
         path: path.resolve(__dirname, 'dist/'),
         filename: 'white-board.min.js'
