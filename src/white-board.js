@@ -566,7 +566,6 @@ if (!Date.now) {
                 var oPathInfo = this.info.content[i];
                 var arr = oPathInfo.path;
                 this.setUp(oPathInfo.canvasSettings);
-                this.initCtx();
                 for (var j = 0, length = arr.length; j < length; j++) {
                     var currentMidX = arr[j].currentMidX;
                     var currentMidY = arr[j].currentMidY;
