@@ -93,14 +93,14 @@ if (!Date.now) {
                 num = num + (zIndexInfo[i].other.video ? zIndexInfo[i].other.video.length : 0);
                 num = num + (zIndexInfo[i].other.N2 ? zIndexInfo[i].other.N2.length : 0);
             }
-            console.log('层级总数: ' + num);
+            // console.log('层级总数: ' + num);
             return num;
         },
 
         // 初始化画布布局
         initLayout: function () {
             var maxPage = Math.max.apply(Math, this.options.zIndexInfo.map(function(e) { return (e.page || 1) }));
-            console.log('最大页数: ' + maxPage);
+            // console.log('最大页数: ' + maxPage);
             this.wrapDom.style.height = maxPage*this.pageHeight + 'px';
             this.wrapDom.style.position = 'relative';
 
@@ -261,7 +261,7 @@ if (!Date.now) {
         // this.locus = null;
         this.curve = null;
         this.setUp(this.initSettings(obj));
-        this.drawingContent();
+        this.drawingContent(Object.assign({}, this.canvasSettings));
         if (!obj.disabled) {
             this.initDrawEvent();
         }
@@ -270,7 +270,7 @@ if (!Date.now) {
     Canvas.prototype = {
         // 初始设置参数获取
         initSettings: function (obj) {
-            var o = null;
+            /* var o = null;
             if (obj.content && obj.content.length) {
                 this.setUp(obj.content[obj.content.length - 1].canvasSettings);
             } else {
@@ -281,8 +281,14 @@ if (!Date.now) {
                     globalAlpha: obj.inputType && obj.inputType === 'fluorescent-pen' ? 0.5 : 1,
                     inputType: obj.inputType || 'fountain-pen'
                 }
-            }
-            return o;
+            } */
+            return {
+                strokeStyle: obj.color || '#000000',
+                lineWidth: obj.size || 2,
+                lineCap: "round",
+                globalAlpha: obj.inputType && obj.inputType === 'fluorescent-pen' ? 0.5 : 1,
+                inputType: obj.inputType || 'fountain-pen'
+            };
         },
         // 当前画布设置更改
         setUp: function (settings) {
@@ -293,35 +299,11 @@ if (!Date.now) {
         },
         // 初始化画板功能
         initCtx: function () {
-            /* if (this.canvasSettings.inputType === 'rubber') { // 橡皮功能
-                this.setCtx('none');
-            } else {
-                this.setCtx('common');
-            } */
             this.ctx = this.el.getContext("2d");
             this.ctx.strokeStyle = this.canvasSettings.strokeStyle;
             this.ctx.lineWidth = this.canvasSettings.lineWidth;
             this.ctx.lineCap = this.canvasSettings.lineCap;
             this.ctx.globalAlpha = this.canvasSettings.inputType === 'fluorescent-pen' ? 0.5 : 1;
-        },
-        // 初始化画笔样式
-        setCtx: function (type) {
-            console.log('ttttttttttt', type);
-            switch (type) {
-                case 'common':
-                    this.ctx = this.el.getContext("2d");
-                    this.ctx.strokeStyle = this.canvasSettings.strokeStyle;
-                    this.ctx.lineWidth = this.canvasSettings.lineWidth;
-                    this.ctx.lineCap = this.canvasSettings.lineCap;
-                    this.ctx.globalAlpha = this.canvasSettings.inputType === 'fluorescent-pen' ? 0.5 : 1;
-                    console.log(this.ctx);
-                    break;
-                case 'none':
-                        this.ctx = null;
-                        break;
-                default:
-                    break;
-            }
         },
         // 基础绘图功能
         initDrawEvent: function () {
@@ -368,13 +350,13 @@ if (!Date.now) {
             });
             
             // 监听输入完毕，触发异步回调
-            if (_self.watcher) {
+            if (_self.watcher && _self.watcher.cb && typeof _self.watcher.cb === "function") {
                 this.el.addEventListener('touchend', _self.debounce(_self.watcher.cb, _self.watcher.wait));
                 this.el.addEventListener('mouseup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
             }
 
             // 监听输入开始，触发同步回调
-            if (_self.callBack) {
+            if (_self.callBack && typeof _self.callBack === "function") {
                 this.el.addEventListener('touchstart', _self.callBack);
                 this.el.addEventListener('mousedown', _self.callBack);
             }
@@ -383,15 +365,29 @@ if (!Date.now) {
         },
         // 去除一条匹配的轨迹
         removeOnePath: function (e, coords) {
-            /* if (e.touches && e.touches.length > 1) return;
+            // rubberRange
+            if (e.touches && e.touches.length > 1) return;
             if (!this.info.content.length) return;
-            console.log(coords);
-            console.log(JSON.stringify(this.info.content));
             for (var i = 0, length = this.info.content.length; i < length; i++) {
-                for (var j = 0, len = this.info.content[i].path.length; j < len; j++) {
-                    this.match
-                }
-            } */
+                var matchResult = this.matchPath(coords, this.info.content[i].path);
+                if (matchResult) {
+                    this.info.content.splice(i, 1);
+                    this.drawingContent(Object.assign({}, this.canvasSettings));
+                    return;
+                };
+            }
+        },
+        // 根据点击坐标匹配选中的一条轨迹
+        matchPath: function (coords, pathArr) {
+            var bool;
+            var rubberRange = this.rubberRange;
+
+            var arr = pathArr.filter(function (e) {
+                return (coords.x >= e.currentMidX - rubberRange && coords.x <= e.currentMidX + rubberRange) && (coords.y >= e.currentMidY - rubberRange && coords.y <= e.currentMidY + rubberRange);
+            });
+            arr.length ? bool = true : bool = false;
+
+            return bool;
         },
         // 防抖
         debounce: function (func, wait) {
@@ -412,7 +408,6 @@ if (!Date.now) {
             this.coords.current = this.coords.old = coords;
             this.coords.oldMid = this.getMidInputCoords(coords);
             
-            console.log(this.info);
             console.log(this.coords);
 
             // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
@@ -453,6 +448,7 @@ if (!Date.now) {
             }
             // this.info.content.push(this.locus);
             this.info.content.push(this.curve);
+            
             // console.log(JSON.stringify(this.info.content));
         },
 
@@ -542,7 +538,9 @@ if (!Date.now) {
             });
         },
         // 初始化白板内容
-        drawingContent: function () {
+        drawingContent: function (canvasSettings) {
+            this.clearAll();
+
             if (!this.info.content.length) return;
 
             var content = this.info.content.filter(function (e) {
@@ -583,6 +581,15 @@ if (!Date.now) {
                     this.ctx.stroke();
                 }
             }
+
+            // 恢复上一次的设置
+            this.setUp(canvasSettings);
+        },
+        // 清除画布的所有内容
+        clearAll: function () {
+            var canvas = this.el;
+            var context = canvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
         }
     };
     /*************************************************************************/
