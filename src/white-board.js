@@ -365,7 +365,6 @@ if (!Date.now) {
         },
         // 去除一条匹配的轨迹
         removeOnePath: function (e, coords) {
-            // rubberRange
             if (e.touches && e.touches.length > 1) return;
             if (!this.info.content.length) return;
             for (var i = 0, length = this.info.content.length; i < length; i++) {
@@ -382,7 +381,10 @@ if (!Date.now) {
             var rubberRange = this.rubberRange;
 
             var bool = pathArr.some(function (e) {
-                return (coords.x >= e.currentMidX - rubberRange && coords.x <= e.currentMidX + rubberRange) && (coords.y >= e.currentMidY - rubberRange && coords.y <= e.currentMidY + rubberRange);
+                var condition_1 = (coords.x >= e.currentMidX - rubberRange && coords.x <= e.currentMidX + rubberRange) && (coords.y >= e.currentMidY - rubberRange && coords.y <= e.currentMidY + rubberRange);
+                var condition_2 = (coords.x >= e.oldX - rubberRange && coords.x <= e.oldX + rubberRange) && (coords.y >= e.oldY - rubberRange && coords.y <= e.oldY + rubberRange);
+                var condition_3 = (coords.x >= e.oldMidX - rubberRange && coords.x <= e.oldMidX + rubberRange) && (coords.y >= e.oldMidY - rubberRange && coords.y <= e.oldMidY + rubberRange);
+                return condition_1 || condition_2 || condition_3;
             });
 
             return bool;
