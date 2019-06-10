@@ -545,6 +545,10 @@ if (!Date.now) {
         drawingContent: function () {
             if (!this.info.content.length) return;
 
+            var content = this.info.content.filter(function (e) {
+                return e;
+            });
+
             /* for (var i = 0, len = this.info.content.length; i < len; i++) {
                 var arr = this.info.content[i].path.split('M')[1].split('L');
                 for (var j = 0, length = arr.length; j < length; j++) {
@@ -562,8 +566,8 @@ if (!Date.now) {
                 }
             } */
 
-            for (var i = 0, len = this.info.content.length; i < len; i++) {
-                var oPathInfo = this.info.content[i];
+            for (var i = 0, len = content.length; i < len; i++) {
+                var oPathInfo = content[i];
                 var arr = oPathInfo.path;
                 this.setUp(oPathInfo.canvasSettings);
                 for (var j = 0, length = arr.length; j < length; j++) {
