@@ -379,13 +379,11 @@ if (!Date.now) {
         },
         // 根据点击坐标匹配选中的一条轨迹
         matchPath: function (coords, pathArr) {
-            var bool;
             var rubberRange = this.rubberRange;
 
-            var arr = pathArr.filter(function (e) {
+            var bool = pathArr.some(function (e) {
                 return (coords.x >= e.currentMidX - rubberRange && coords.x <= e.currentMidX + rubberRange) && (coords.y >= e.currentMidY - rubberRange && coords.y <= e.currentMidY + rubberRange);
             });
-            arr.length ? bool = true : bool = false;
 
             return bool;
         },
