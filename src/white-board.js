@@ -155,7 +155,7 @@ if (!Date.now) {
             this.wrapDom.appendChild(testBtn);
             var _self = this;
             testBtn.onclick = function () {
-                _self.canvasObj[0].setUp({ inputType: 'rubber' });
+                _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
             }; */
         },
 
@@ -249,7 +249,7 @@ if (!Date.now) {
             strokeStyle: '',
             lineWidth: '',
             lineCap: '',
-            globalAlpha: '',
+            globalCompositeOperation: '',
             inputType: ''
         };
         this.rubberRange = 5;
@@ -278,7 +278,7 @@ if (!Date.now) {
                     strokeStyle: obj.color || '#000000',
                     lineWidth: obj.size || 2,
                     lineCap: "round",
-                    globalAlpha: obj.inputType && obj.inputType === 'fluorescent-pen' ? 0.5 : 1,
+                    globalCompositeOperation: obj.inputType && obj.inputType === 'fluorescent-pen' ? 'darken' : 'source-over',
                     inputType: obj.inputType || 'fountain-pen'
                 }
             } */
@@ -286,7 +286,7 @@ if (!Date.now) {
                 strokeStyle: obj.color || '#000000',
                 lineWidth: obj.size || 2,
                 lineCap: "round",
-                globalAlpha: obj.inputType && obj.inputType === 'fluorescent-pen' ? 0.5 : 1,
+                globalCompositeOperation: obj.inputType && obj.inputType === 'fluorescent-pen' ? 'darken' : 'source-over',
                 inputType: obj.inputType || 'fountain-pen'
             };
         },
@@ -303,7 +303,7 @@ if (!Date.now) {
             this.ctx.strokeStyle = this.canvasSettings.strokeStyle;
             this.ctx.lineWidth = this.canvasSettings.lineWidth;
             this.ctx.lineCap = this.canvasSettings.lineCap;
-            this.ctx.globalAlpha = this.canvasSettings.inputType === 'fluorescent-pen' ? 0.5 : 1;
+            this.ctx.globalCompositeOperation = this.canvasSettings.inputType === 'fluorescent-pen' ? 'darken' : 'source-over';
         },
         // 基础绘图功能
         initDrawEvent: function () {

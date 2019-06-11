@@ -3,12 +3,12 @@ window.oCanvas = window.WhiteBoard({
     "el": ".box",
     "toolBar": true,
     "zIndexInfo": [{
-        "inputType": "rubber", // rubber, fountain-pen, fluorescent-pen
+        "inputType": "fountain-pen", // rubber, fountain-pen, fluorescent-pen
         // "disabled": true,
         "update": false,
-        "color": "#039be5",
+        "color": "#000",
         "page": 1,
-        "size": 2,
+        "size": 5,
         "zIndex": 1,
         "content": [
             /* {
@@ -80,7 +80,7 @@ window.oCanvas = window.WhiteBoard({
                     "strokeStyle": "#039be5",
                     "lineWidth": 2,
                     "lineCap": "round",
-                    "globalAlpha": 1,
+                    "globalCompositeOperation": 'source-over',
                     "inputType": 'fountain-pen'
                 }
             }, */ 
@@ -139,7 +139,7 @@ window.oCanvas = window.WhiteBoard({
                     "strokeStyle": "#039be5",
                     "lineWidth": 2,
                     "lineCap": "round",
-                    "globalAlpha": 1,
+                    "globalCompositeOperation": 'source-over',
                     "inputType": 'fountain-pen'
                 }
             }
