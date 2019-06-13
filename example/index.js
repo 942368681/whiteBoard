@@ -150,6 +150,95 @@ window.oCanvas = window.WhiteBoard({
             video: [],
             N2: []
         }
+    },{
+        "inputType": "fountain-pen", // rubber, fountain-pen, fluorescent-pen
+        // "disabled": true,
+        "update": false,
+        "color": "#FF9500",
+        "page": 1,
+        "size": 5,
+        "zIndex": 2,
+        "content": [
+            {
+                "path": [{
+                    "currentMidX": 272,
+                    "currentMidY": 92,
+                    "oldX": 272,
+                    "oldY": 92,
+                    "oldMidX": 272,
+                    "oldMidY": 92
+                }, {
+                    "currentMidX": 271,
+                    "currentMidY": 95,
+                    "oldX": 272,
+                    "oldY": 93,
+                    "oldMidX": 272,
+                    "oldMidY": 92
+                }, {
+                    "currentMidX": 271,
+                    "currentMidY": 99,
+                    "oldX": 271,
+                    "oldY": 97,
+                    "oldMidX": 271,
+                    "oldMidY": 95
+                }, {
+                    "currentMidX": 270,
+                    "currentMidY": 104,
+                    "oldX": 271,
+                    "oldY": 101,
+                    "oldMidX": 271,
+                    "oldMidY": 99
+                }, {
+                    "currentMidX": 269,
+                    "currentMidY": 110,
+                    "oldX": 270,
+                    "oldY": 107,
+                    "oldMidX": 270,
+                    "oldMidY": 104
+                }, {
+                    "currentMidX": 268,
+                    "currentMidY": 117,
+                    "oldX": 268,
+                    "oldY": 114,
+                    "oldMidX": 269,
+                    "oldMidY": 110
+                }, {
+                    "currentMidX": 270,
+                    "currentMidY": 124,
+                    "oldX": 268,
+                    "oldY": 120,
+                    "oldMidX": 268,
+                    "oldMidY": 117
+                }, {
+                    "currentMidX": 276,
+                    "currentMidY": 132,
+                    "oldX": 273,
+                    "oldY": 129,
+                    "oldMidX": 270,
+                    "oldMidY": 124
+                }, {
+                    "currentMidX": 284,
+                    "currentMidY": 136,
+                    "oldX": 280,
+                    "oldY": 135,
+                    "oldMidX": 276,
+                    "oldMidY": 132
+                }],
+                "canvasSettings": {
+                    "strokeStyle": "#FF9500",
+                    "lineWidth": 2,
+                    "lineCap": "round",
+                    "globalCompositeOperation": 'source-over',
+                    "inputType": 'fountain-pen'
+                }
+            }
+        ],
+        "other": {
+            img: [],
+            audio: [],
+            video: [],
+            N2: []
+        }
     }],
     // "watcher": {
     //     wait: 2000,

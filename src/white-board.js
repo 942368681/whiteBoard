@@ -100,13 +100,15 @@ if (!Date.now) {
         // 初始化画布布局
         initLayout: function () {
             var maxPage = Math.max.apply(Math, this.options.zIndexInfo.map(function(e) { return (e.page || 1) }));
-            // console.log('最大页数: ' + maxPage);
+            console.log('最大页数: ' + maxPage);
             this.wrapDom.style.height = maxPage*this.pageHeight + 'px';
             this.wrapDom.style.position = 'relative';
 
+            // 清理dom和已挂载到canvasObj的canvas实例
             while (this.wrapDom.children.length) {
                 this.wrapDom.removeChild(this.wrapDom.firstElementChild);
             }
+            this.canvasObj = [];
 
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
@@ -121,8 +123,8 @@ if (!Date.now) {
             this.wrapDom.appendChild(testBtn);
             var _self = this;
             testBtn.onclick = function () {
-                _self.createMediaDom('N2', _self.options.zIndexInfo[0].content, true);
-                // _self.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
+                // _self.createMediaDom('N2', _self.options.zIndexInfo[0].content, true);
+                _self.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
             }; */
 
             // 测试多媒体控件dom接入（音频）
@@ -144,7 +146,7 @@ if (!Date.now) {
             this.wrapDom.appendChild(testBtn);
             var _self = this;
             testBtn.onclick = function () {
-
+                _self.addPage();
             };  */
 
             // 测试橡皮擦 && 画笔
@@ -199,7 +201,10 @@ if (!Date.now) {
 
         // 插入多媒体模块及n2笔svg图片
         createMediaDom: function (type, data, initDrag) {
-            this.zIndexTotal += 1;
+            // this.zIndexTotal += 1;
+            var other = this.canvasObj[0].info.other;
+            var oIndexTotal = other.N2.length + other.img.length + other.video.length + other.audio.length;
+            oIndexTotal += 1;
             var dom = null;
             var info = {
                 type: "",
@@ -209,32 +214,35 @@ if (!Date.now) {
             var coordinate = this.getRandomPosition();
             switch (type) {
                 case 'img':
-                    dom = new Image(data, coordinate, this.zIndexTotal).dom;
+                    dom = new Image(data, coordinate, oIndexTotal).dom;
                     info.type = "img";
                     info.dom = dom;
-                    info.zIndex = this.zIndexTotal;
+                    info.zIndex = oIndexTotal;
                     break;
                 case 'video':
                     alert("暂不支持");
                     break;
                 case 'audio':
-                    dom = new Audio(data, coordinate, this.zIndexTotal).dom;
+                    dom = new Audio(data, coordinate, oIndexTotal).dom;
                     info.type = "audio";
                     info.dom = dom;
-                    info.zIndex = this.zIndexTotal;
+                    info.zIndex = oIndexTotal;
                     break;
                 case 'N2':
-                    dom = new N2SVG(data, coordinate, this.zIndexTotal).dom;
+                    dom = new N2SVG(data, coordinate, oIndexTotal).dom;
                     info.type = "N2";
                     info.dom = dom;
-                    info.zIndex = this.zIndexTotal;
+                    info.zIndex = oIndexTotal;
                     break;
                 default:
                     alert("未知类型控件");
                     break;
             }
-            this.wrapDom.appendChild(dom);
-            if (initDrag) new Drag(dom, this.wrapDom);
+            // this.wrapDom.appendChild(dom);
+            // if (initDrag) new Drag(dom, this.wrapDom);
+            this.canvasObj[0].info.other[type].push(info);
+            this.canvasObj[0].el.parentNode.appendChild(dom);
+            if (initDrag) new Drag(dom, this.canvasObj[0].el.parentNode);
         }
     };
 

@@ -6,5 +6,6 @@
 }
 
 .board-box canvas {
-    position: relative;
+    position: absolute;
+    z-index: 0;
 }
