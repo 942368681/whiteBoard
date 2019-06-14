@@ -199,50 +199,73 @@ if (!Date.now) {
             }
         },
 
+        // 找出所有附加元素中层级最大值
+        findMaxIndex: function (other) {
+            var arr = [];
+            var max;
+            for (var key in other) {
+                if (other[key].length) {
+                    arr.push(Math.max.apply(null, other[key].map(function (v) {
+                        return v.zIndex;
+                    })));
+                }
+            }
+            if (arr.length) {
+                max = Math.max.apply(null, arr);
+            } else {
+                max= 0;
+            }
+            return max;
+        },
+
         // 插入多媒体模块及n2笔svg图片
         createMediaDom: function (type, data, initDrag) {
-            // this.zIndexTotal += 1;
-            var other = this.canvasObj[0].info.other;
-            var oIndexTotal = other.N2.length + other.img.length + other.video.length + other.audio.length;
+            var oIndexTotal = this.findMaxIndex(this.canvasObj[0].info.other);
             oIndexTotal += 1;
             var dom = null;
             var info = {
-                type: "",
-                dom: "",
-                zIndex: ""
+                type: "", // 类型
+                zIndex: "", // 当前层级画板的层级
+                info: {} // 具体信息
             };
             var coordinate = this.getRandomPosition();
             switch (type) {
                 case 'img':
-                    dom = new Image(data, coordinate, oIndexTotal).dom;
-                    info.type = "img";
-                    info.dom = dom;
+                    dom = new Image(data, coordinate, oIndexTotal, info, this).dom;
                     info.zIndex = oIndexTotal;
                     break;
                 case 'video':
                     alert("暂不支持");
                     break;
                 case 'audio':
-                    dom = new Audio(data, coordinate, oIndexTotal).dom;
+                    dom = new Audio(data, coordinate, oIndexTotal, this).dom;
                     info.type = "audio";
-                    info.dom = dom;
                     info.zIndex = oIndexTotal;
                     break;
                 case 'N2':
-                    dom = new N2SVG(data, coordinate, oIndexTotal).dom;
+                    dom = new N2SVG(data, coordinate, oIndexTotal, this).dom;
                     info.type = "N2";
-                    info.dom = dom;
                     info.zIndex = oIndexTotal;
                     break;
                 default:
                     alert("未知类型控件");
                     break;
             }
-            // this.wrapDom.appendChild(dom);
-            // if (initDrag) new Drag(dom, this.wrapDom);
             this.canvasObj[0].info.other[type].push(info);
             this.canvasObj[0].el.parentNode.appendChild(dom);
             if (initDrag) new Drag(dom, this.canvasObj[0].el.parentNode);
+        },
+
+        // 通知元素已被删除
+        deleteElFromOtherData: function (type, zIndex, dom) {
+            for (var i = 0, len = this.canvasObj[0].info.other[type].length; i < len; i++) {
+                if (this.canvasObj[0].info.other[type][i].zIndex === zIndex) {
+                    this.canvasObj[0].info.other[type].splice(i, 1);
+                    break;
+                }
+            }
+            this.canvasObj[0].el.parentNode.removeChild(dom);
+            console.log(this.canvasObj[0].info.other[type]);
         }
     };
 
@@ -604,17 +627,10 @@ if (!Date.now) {
     
     /********************************* 拖拽类 *********************************/
     function Drag(dom, wrapDom) {
+        this.wrapDom = wrapDom;
         this.dom = dom;
         this.flag = false;
         var self = this;
-        var sty = null;
-        if (w.getComputedStyle) {
-            sty = w.getComputedStyle(self.dom, null); // 非IE
-        } else {
-            sty = self.dom.currentStyle; // IE
-        }
-        this.maxLeft = wrapDom.clientWidth - sty.width.split('px')[0] - 20; //当前元素可移动的最大左偏移
-        this.maxTop = wrapDom.clientHeight - sty.height.split('px')[0] - 20; //当前元素可移动的最大上偏移
 
         self.dom.addEventListener("mousedown", function (e) {
             self.down(self);
@@ -651,6 +667,15 @@ if (!Date.now) {
     }
     //移动
     Drag.prototype.move = function (self, offLeft, offTop) {
+        var sty = null;
+        if (w.getComputedStyle) {
+            sty = w.getComputedStyle(self.dom, null); // 非IE
+        } else {
+            sty = self.dom.currentStyle; // IE
+        }
+        var maxLeft = self.wrapDom.clientWidth - sty.width.split('px')[0] - 20; //当前元素可移动的最大左偏移
+        var maxTop = self.wrapDom.clientHeight - sty.height.split('px')[0] - 20; //当前元素可移动的最大上偏移
+
         if (self.flag) {
             var touch;
             if (event.touches) {
@@ -662,13 +687,13 @@ if (!Date.now) {
             var endY = touch.clientY - offTop; //元素移动后的top距离
             if (endX <= 20) {
                 endX = 20;
-            } else if (endX >= self.maxLeft) {
-                endX = self.maxLeft;
+            } else if (endX >= maxLeft) {
+                endX = maxLeft;
             }
             if (endY <= 20) {
                 endY = 20;
-            } else if (endY >= self.maxTop) {
-                endY = self.maxTop;
+            } else if (endY >= maxTop) {
+                endY = maxTop;
             }
 
             self.dom.style.left = endX + "px";

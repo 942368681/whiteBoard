@@ -3,9 +3,12 @@
     left: 0;
     top: 0;
     width: 100%;
+    overflow: hidden;
 }
 
 .board-box canvas {
     position: absolute;
     z-index: 0;
+    left: 0;
+    top: 0;
 }

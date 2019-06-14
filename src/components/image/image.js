@@ -1,23 +1,233 @@
 import './image.css';
 
-export const Image = function (data, coordinate, Z_INDEX_TOTAL) {
+export const Image = function (data, coordinate, Z_INDEX_TOTAL, info, superClass) {
     this.url = data;
     this.coordinate = coordinate;
     this.zIndex = Z_INDEX_TOTAL;
     this.dom = null;
+    this.info = info;
+    this.superClass = superClass;
+    this.isScale = false;
+    this.isRotate = false;
+    this.setInfo({type: 'img'});
     this.init();
 };
 
 Image.prototype = {
+    // 设置属性
+    setInfo: function (obj) {
+        for (var key in obj) {
+            this.info[key] = obj[key];
+        }
+        console.log(this.info);
+    },
+    // dom初始化
     init: function () {
         this.dom = document.createElement('div');
         this.dom.setAttribute("class", "board-drag-img");
         this.dom.style.cssText = "left: " + this.coordinate.x + "px; top: " + this.coordinate.y + "px; z-index: " + this.zIndex + "";
+
         var img = document.createElement('img');
         img.setAttribute('src', this.url);
         img.addEventListener('mousedown', function (ev) {
-            ev.preventDefault()
-        })
+            ev.preventDefault();
+        });
+
+        var rotateIconDom = document.createElement('i');
+        rotateIconDom.setAttribute('class', 'boardIcon iconyulanxuanzhuan board-rotate');
+
+        var scaleIconDom = document.createElement('i');
+        scaleIconDom.setAttribute('class', 'boardIcon iconamplification_icon board-scale');
+
+        var deleteIconDom = document.createElement('i');
+        deleteIconDom.setAttribute('class', 'boardIcon iconshanchu board-delete');
+        
         this.dom.appendChild(img);
+        this.dom.appendChild(rotateIconDom);
+        this.dom.appendChild(scaleIconDom);
+        this.dom.appendChild(deleteIconDom);
+
+        img.onload = () => {
+            console.log(this.dom.getBoundingClientRect());
+            
+        }
+
+        this.bindEvents();
+    },
+
+    // 绑定事件
+    bindEvents: function () {
+        var _self = this;
+        var rotateBtn = this.dom.getElementsByClassName('board-rotate')[0];
+        var scaleBtn = this.dom.getElementsByClassName('board-scale')[0];
+        var deleteBtn = this.dom.getElementsByClassName('board-delete')[0];
+
+        // 绑定删除事件
+        deleteBtn.addEventListener('mousedown', function (ev) {
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.deleteIt('img', _self.zIndex, _self.dom);
+
+        });
+        deleteBtn.addEventListener('touchstart', function (ev) {
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.deleteIt('img', _self.zIndex, _self.dom);
+        });
+
+        // 绑定缩放事件
+        scaleBtn.addEventListener('mousedown', function (ev) {
+            ev.preventDefault();
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.isScale = true;
+            _self.scaleStart(ev);
+
+        });
+        scaleBtn.addEventListener('touchstart', function (ev) {
+            ev.preventDefault();
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.isScale = true;
+            _self.scaleStart(ev);
+        });
+
+        // 绑定旋转事件
+        rotateBtn.addEventListener('mousedown', function (ev) {
+            ev.preventDefault();
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.isRotate = true;
+            _self.rotateStart(ev);
+
+        });
+        rotateBtn.addEventListener('touchstart', function (ev) {
+            ev.preventDefault();
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.isRotate = true;
+            _self.rotateStart(ev);
+        });
+    },
+
+    // 删除这个图片
+    deleteIt: function (type, zIndex, dom) {
+        this.superClass.deleteElFromOtherData(type, zIndex, dom);
+    },
+
+    // 旋转开始 // d.style.transform = 'rotate(20deg)'
+    rotateStart: function (e) {
+        var _self = this;
+        var coords = this.getPos(e);
+        // var wrapDom = this.superClass.canvasObj[0].el.parentNode;
+        var pos = {
+            'w': this.dom.getBoundingClientRect().width,
+            'h': this.dom.getBoundingClientRect().height,
+            'x': coords.x,
+            'y': coords.y
+        };
+        window.onmousemove = function (ev) {
+            _self.rotateing(pos, ev);
+        };
+        window.onmouseup = function () {
+            _self.rotateEnd();
+        };
+        window.addEventListener('touchmove', function (ev) {
+            _self.rotateing(pos, ev);
+        });
+        window.addEventListener('touchend', function () {
+            _self.rotateEnd();
+        });
+    },
+
+    // 旋转中
+    rotateing: function (pos, ev) {
+        if (!this.isRotate) return;
+        var _self = this;
+        var oRotate;
+        var a = _self.getPos(ev).x - pos.x;
+        var b = _self.getPos(ev).y - pos.y;
+        var c = Math.sqrt(a * a + b * b);
+        if (a > 0 && b > 0) {
+            oRotate = Math.asin(b / c) + 90 * Math.PI / 180;
+        } else if (a > 0) {
+            oRotate = Math.asin(a / c);
+        }
+        if (a < 0 && b > 0) {
+            oRotate = -(Math.asin(b / c) + 90 * Math.PI / 180);
+        } else if (a < 0) {
+            oRotate = Math.asin(a / c);
+        }
+        _self.dom.style.transform = 'rotate(' + oRotate + 'rad)';
+    },
+
+    // 旋转结束
+    rotateEnd: function () {
+        if (!this.isRotate) return;
+        window.onmousemove = null;
+        window.onmouseup = null;
+        this.isRotate = false;
+    },
+
+    // 缩放开始
+    scaleStart: function (e) {
+        var _self = this;
+        var coords = this.getPos(e);
+        var pos = {
+            'w': this.dom.getBoundingClientRect().width,
+            'h': this.dom.getBoundingClientRect().height,
+            'x': coords.x,
+            'y': coords.y
+        };
+        window.onmousemove = function (ev) {
+            _self.scaleing(pos, ev);
+        };
+        window.onmouseup = function () {
+            _self.scaleEnd();
+        };
+        window.addEventListener('touchmove', function (ev) {
+            _self.scaleing(pos, ev);
+        });
+        window.addEventListener('touchend', function () {
+            _self.scaleEnd();
+        });
+    },
+
+    // 缩放中
+    scaleing: function (pos, ev) {
+        if (!this.isScale) return;
+        var _self = this;
+        var wrapDom = this.superClass.canvasObj[0].el.parentNode;
+        var w = Math.max(90, _self.getPos(ev).x - pos.x + pos.w);
+        var h = Math.max(120, _self.getPos(ev).y - pos.y + pos.h);
+        w = w >= wrapDom.offsetWidth - _self.dom.offsetLeft - 20 ? wrapDom.offsetWidth - _self.dom.offsetLeft - 20 : w;
+        h = h >= wrapDom.offsetHeight - _self.dom.offsetTop - 20 ? wrapDom.offsetHeight - _self.dom.offsetTop - 20 : h;
+        _self.dom.style.width = w + 'px';
+        _self.dom.style.height = h + 'px';
+    },
+
+    // 缩放结束
+    scaleEnd: function () {
+        if (!this.isScale) return;
+        window.onmousemove = null;
+        window.onmouseup = null;
+        this.isScale = false;
+    },
+
+    // 计算鼠标或手指位置
+    getPos: function (e) {
+        var x, y;
+        if (e.touches && e.touches.length == 1) {
+            x = e.touches[0].pageX;
+            y = e.touches[0].pageY;
+        } else {
+            x = e.pageX;
+            y = e.pageY;
+        }
+        return {
+            x: x.toFixed(0),
+            y: y.toFixed(0)
+        }
     }
+
 };

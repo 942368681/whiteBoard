@@ -240,9 +240,9 @@ window.oCanvas = window.WhiteBoard({
             N2: []
         }
     }],
-    // "watcher": {
-    //     wait: 2000,
-    //     cb: () => console.log('aaaaaaaa')
-    // },
-    // "callBack": () => console.log('!!!!!!!!')
+    "watcher": {
+        wait: 2000,
+        cb: () => console.log('异步执行回调')
+    },
+    "callBack": () => console.log('同步执行回调')
 });
