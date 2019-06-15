@@ -157,7 +157,8 @@ if (!Date.now) {
             this.wrapDom.appendChild(testBtn);
             var _self = this;
             testBtn.onclick = function () {
-                _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
+                // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
+                _self.canvasObj[0].setUp({ inputType: 'rubber'});
             }; */
         },
 
@@ -342,44 +343,32 @@ if (!Date.now) {
             
             // touch事件
             this.el.addEventListener('touchstart', function (e) {
-                if (_self.canvasSettings.inputType !== 'rubber') _self.touchStart.call(_self, e, _self.getInputCoords(e));
+                _self.touchStart.call(_self, e, _self.getInputCoords(e));
             });
 
             this.el.addEventListener('touchmove', function (e) {
-                if (_self.canvasSettings.inputType !== 'rubber') _self.touchMove.call(_self, e, _self.getInputCoords(e));
+                _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
 
             this.el.addEventListener('touchend', function (e) {
-                if (_self.canvasSettings.inputType !== 'rubber') {
-                    _self.info.update = true;
-                    _self.touchEnd.call(_self, e);
-                }
+                _self.info.update = true;
+                _self.touchEnd.call(_self, e);
             });
 
             // mouse事件
             this.el.addEventListener('mousedown', function (e) {
-                if (_self.canvasSettings.inputType !== 'rubber') _self.touchStart.call(_self, e, _self.getInputCoords(e));
+                _self.touchStart.call(_self, e, _self.getInputCoords(e));
             });
             
             this.el.addEventListener('mousemove', function (e) {
-                if (_self.canvasSettings.inputType !== 'rubber') _self.touchMove.call(_self, e, _self.getInputCoords(e));
+                _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
             
             this.el.addEventListener('mouseup', function (e) {
-                if (_self.canvasSettings.inputType !== 'rubber') {
-                    _self.info.update = true;
-                    _self.touchEnd.call(_self, e);
-                }
+                _self.info.update = true;
+                _self.touchEnd.call(_self, e);
             });
 
-            // 橡皮擦功能，click事件
-            this.el.addEventListener('click', function (e) {
-                if (_self.canvasSettings.inputType === 'rubber') {
-                    _self.info.update = true;
-                    _self.removeOnePath.call(_self, e, _self.getInputCoords(e));
-                }
-            });
-            
             // 监听输入完毕，触发异步回调
             if (_self.watcher && _self.watcher.cb && typeof _self.watcher.cb === "function") {
                 this.el.addEventListener('touchend', _self.debounce(_self.watcher.cb, _self.watcher.wait));
@@ -393,32 +382,6 @@ if (!Date.now) {
             }
 
             if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
-        },
-        // 去除一条匹配的轨迹
-        removeOnePath: function (e, coords) {
-            if (e.touches && e.touches.length > 1) return;
-            if (!this.info.content.length) return;
-            for (var i = 0, length = this.info.content.length; i < length; i++) {
-                var matchResult = this.matchPath(coords, this.info.content[i].path);
-                if (matchResult) {
-                    this.info.content.splice(i, 1);
-                    this.drawingContent(Object.assign({}, this.canvasSettings));
-                    return;
-                };
-            }
-        },
-        // 根据点击坐标匹配选中的一条轨迹
-        matchPath: function (coords, pathArr) {
-            var rubberRange = this.rubberRange;
-
-            var bool = pathArr.some(function (e) {
-                var condition_1 = (coords.x >= e.currentMidX - rubberRange && coords.x <= e.currentMidX + rubberRange) && (coords.y >= e.currentMidY - rubberRange && coords.y <= e.currentMidY + rubberRange);
-                var condition_2 = (coords.x >= e.oldX - rubberRange && coords.x <= e.oldX + rubberRange) && (coords.y >= e.oldY - rubberRange && coords.y <= e.oldY + rubberRange);
-                var condition_3 = (coords.x >= e.oldMidX - rubberRange && coords.x <= e.oldMidX + rubberRange) && (coords.y >= e.oldMidY - rubberRange && coords.y <= e.oldMidY + rubberRange);
-                return condition_1 || condition_2 || condition_3;
-            });
-
-            return bool;
         },
         // 防抖
         debounce: function (func, wait) {
@@ -462,6 +425,14 @@ if (!Date.now) {
 
             this.coords.current = coords;
 
+            if (this.canvasSettings.inputType === 'rubber') {
+                var pos = {
+                    x: coords.x,
+                    y: coords.y
+                };
+                this.removeOnePath(pos);
+            }
+
             // this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
             // this.curve.path.push([this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y]);
     
@@ -478,36 +449,87 @@ if (!Date.now) {
                 e.preventDefault();
             }
             // this.info.content.push(this.locus);
-            this.info.content.push(this.curve);
-            
-            // console.log(JSON.stringify(this.info.content));
+            if (this.canvasSettings.inputType !== 'rubber') {
+                this.info.content.push(this.curve);
+            }
+            // console.log(this.info.content);
         },
 
         drawing: function () {
             if (this.isDrawing) {
                 var currentMid = this.getMidInputCoords(this.coords.current);
-
-                this.ctx.beginPath();
-                this.ctx.moveTo(currentMid.x, currentMid.y);
-                this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
-                this.ctx.stroke();
-
-                const currentCoords = this.getCurrentCoords(this.coords);
-                // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
-                this.curve.path.push({
-                    currentMidX: currentMid.x,
-                    currentMidY: currentMid.y,
-                    oldX: currentCoords.old.x,
-                    oldY: currentCoords.old.y,
-                    oldMidX: currentCoords.oldMid.x,
-                    oldMidY: currentCoords.oldMid.y
-                });
                 
-                this.coords.old = this.coords.current;
-                this.coords.oldMid = currentMid;
-
+                if (this.canvasSettings.inputType !== 'rubber') {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(currentMid.x, currentMid.y);
+                    this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
+                    this.ctx.stroke();
+                    const currentCoords = this.getCurrentCoords(this.coords);
+                    // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
+                    this.curve.path.push({
+                        currentMidX: currentMid.x,
+                        currentMidY: currentMid.y,
+                        oldX: currentCoords.old.x,
+                        oldY: currentCoords.old.y,
+                        oldMidX: currentCoords.oldMid.x,
+                        oldMidY: currentCoords.oldMid.y
+                    });
+                    
+                    this.coords.old = this.coords.current;
+                    this.coords.oldMid = currentMid;
+                }
             }
             if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+        },
+
+        // 去除一条匹配的轨迹
+        removeOnePath: function (coords) {
+            if (!this.info.content.length) {
+                return;
+            };
+            for (var i = 0, len = this.info.content.length; i < len; i++) {
+                if (!this.info.content[i]) break;
+                var matchResult = this.matchPath(coords, this.info.content[i].path);
+                if (matchResult) {
+                    this.info.content.splice(i, 1);
+                    i = i - 1;
+                };
+            }
+            this.drawingContent(Object.assign({}, this.canvasSettings));
+        },
+        // 根据点击坐标匹配选中的一条轨迹
+        matchPath: function (coords, pathArr) {
+            var _self = this;
+            var pointArr = pathArr.map(function (e) {
+                return [e.currentMidX, e.currentMidY, e.oldMidX, e.oldMidY];
+            });
+
+            var bool = pointArr.some(function (e) {
+                return _self.distanceOfPoint2Line(coords.x, coords.y, e[0], e[1], e[2], e[3]) <= (_self.rubberRange*_self.rubberRange);
+            });
+
+            return bool;
+        },
+
+        // 计算某点到两点间线段的垂直距离
+        distanceOfPoint2Line: function (x0, y0, x1, y1, x2, y2) {
+            var x = x1;
+            var y = y1;
+            var dx = x2 - x;
+            var dy = y2 - y;
+            if (dx !== 0 || dy !== 0) {
+                var t = ((x0 - x) * dx + (y0 - y) * dy) / (dx * dx + dy * dy);
+                if (t > 1) {
+                    x = x2;
+                    y = y2;
+                } else if (t > 0) {
+                    x += dx * t;
+                    y += dy * t;
+                }
+            }
+            dx = x0 - x;
+            dy = y0 - y;
+            return dx * dx + dy * dy;
         },
 
         getCurrentCoords: function (obj) {
