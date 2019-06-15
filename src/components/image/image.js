@@ -34,13 +34,13 @@ Image.prototype = {
         });
 
         var rotateIconDom = document.createElement('i');
-        rotateIconDom.setAttribute('class', 'boardIcon iconyulanxuanzhuan board-rotate');
+        rotateIconDom.setAttribute('class', 'boardIcon board-icon-yulanxuanzhuan board-rotate');
 
         var scaleIconDom = document.createElement('i');
-        scaleIconDom.setAttribute('class', 'boardIcon iconamplification_icon board-scale');
+        scaleIconDom.setAttribute('class', 'boardIcon board-icon-amplification_icon board-scale');
 
         var deleteIconDom = document.createElement('i');
-        deleteIconDom.setAttribute('class', 'boardIcon iconshanchu board-delete');
+        deleteIconDom.setAttribute('class', 'boardIcon board-icon-shanchu board-delete');
         
         this.dom.appendChild(img);
         this.dom.appendChild(rotateIconDom);

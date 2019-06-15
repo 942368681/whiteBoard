@@ -43,7 +43,7 @@ Audio.prototype = {
         this.btnL = btnL;
 
         var palyBtn = document.createElement('i');
-        palyBtn.setAttribute("class", "boardIcon iconziyuanldpi2 play");
+        palyBtn.setAttribute("class", "boardIcon board-icon-ziyuanldpi2 play");
 
         var rate = document.createElement('div');
         rate.setAttribute("class", "board-rate");
@@ -74,7 +74,7 @@ Audio.prototype = {
         this.btnR = btnR;
 
         var volumeBtn = document.createElement('i');
-        volumeBtn.setAttribute("class", "boardIcon iconziyuanldpi3 volume");
+        volumeBtn.setAttribute("class", "boardIcon board-icon-ziyuanldpi3 volume");
 
         this.dom.appendChild(audio);
         this.dom.appendChild(controls);
@@ -112,10 +112,10 @@ Audio.prototype = {
     playControl: function () {
         if (this.audio.paused) {
             this.audio.play();
-            this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon iconziyuanldpi1 pause";
+            this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon board-icon-ziyuanldpi1 pause";
         } else {
             this.audio.pause();
-            this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon iconziyuanldpi2 play";
+            this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon board-icon-ziyuanldpi2 play";
         }
     },
 
@@ -138,7 +138,7 @@ Audio.prototype = {
         this.audio.currentTime = 0;
         this.timeS.innerText = "00:00";
         this.audio.pause();
-        this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon iconziyuanldpi2 play";
+        this.btnL.getElementsByTagName('i')[0].classList.value = "boardIcon board-icon-ziyuanldpi2 play";
     },
 
     //转换音频时长显示
