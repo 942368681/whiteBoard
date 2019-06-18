@@ -244,6 +244,9 @@ window.oCanvas = window.WhiteBoard({
         wait: 2000,
         cb: () => console.log('异步执行回调')
     },
-    "callBack": () => console.log('同步执行回调'),
+    "writeCallBack": {
+        type: "once",
+        cb: () => console.log('同步执行回调')
+    },
     "addCallBack": () => console.log('加纸')
 });

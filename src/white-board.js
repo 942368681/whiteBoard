@@ -112,7 +112,7 @@ if (!Date.now) {
 
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
-                this.createCanvas(item, this.options.watcher, this.options.callBack);
+                this.createCanvas(item, this.options.watcher, this.options.writeCallBack);
             }
 
             // 加纸按钮
@@ -161,7 +161,7 @@ if (!Date.now) {
         },
 
         // 单个画布的创建
-        createCanvas: function (obj, watcher, callBack) {
+        createCanvas: function (obj, watcher, writeCallBack) {
             var parentEl = d.createElement('div');
             parentEl.setAttribute('class', 'board-box board-box-' + obj.zIndex);
             parentEl.style.height = (obj.page || 1)*this.pageHeight + 'px';
@@ -175,7 +175,7 @@ if (!Date.now) {
             parentEl.appendChild(canvas);
             
             // 初始化画板对象
-            var c = new Canvas(canvas, obj, watcher, callBack);
+            var c = new Canvas(canvas, obj, watcher, writeCallBack);
             this.canvasObj.push(c);
         },
 
@@ -274,7 +274,7 @@ if (!Date.now) {
 
 
     /******************************* 单个canvas画布对象 **********************************/
-    var Canvas = function (el, obj, watcher, callBack) {
+    var Canvas = function (el, obj, watcher, writeCallBack) {
         this.timeout = null;
         this.el = el;
         this.info = obj;
@@ -287,7 +287,7 @@ if (!Date.now) {
         };
         this.rubberRange = 5;
         this.watcher = watcher;
-        this.callBack = callBack;
+        this.writeCallBack = writeCallBack;
         this.isDrawing = false;
         this.coords = {};
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
@@ -376,10 +376,16 @@ if (!Date.now) {
                 this.el.addEventListener('mouseup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
             }
 
-            // 监听输入开始，触发同步回调
-            if (_self.callBack && typeof _self.callBack === "function") {
-                this.el.addEventListener('touchstart', _self.callBack);
-                this.el.addEventListener('mousedown', _self.callBack);
+            // 监听输入开始，触发同步回调(兼容事件只执行一次)
+            if (_self.writeCallBack && _self.writeCallBack.cb && typeof _self.writeCallBack.cb === "function") {
+                this.el.addEventListener('touchstart', function fn (e) {
+                    if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('touchstart', fn);
+                    return _self.writeCallBack.cb();
+                });
+                this.el.addEventListener('mousedown', function fn (e) {
+                    if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('mousedown', fn);
+                    return _self.writeCallBack.cb();
+                });
             }
 
             if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
@@ -686,7 +692,7 @@ if (!Date.now) {
             _self.move(_self, offLeft, offTop);
         }
         window.onmouseup = function () {
-            _self.end(_self, offLeft, offTop);
+            _self.end(_self);
         }
         w.addEventListener("touchmove", function () {
             _self.move(_self, offLeft, offTop);
