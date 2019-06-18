@@ -126,11 +126,10 @@ Image.prototype = {
         this.superClass.deleteElFromOtherData(type, zIndex, dom);
     },
 
-    // 旋转开始 // d.style.transform = 'rotate(20deg)'
+    // 旋转开始
     rotateStart: function (e) {
         var _self = this;
         var coords = this.getPos(e);
-        // var wrapDom = this.superClass.canvasObj[0].el.parentNode;
         var pos = {
             'w': this.dom.getBoundingClientRect().width,
             'h': this.dom.getBoundingClientRect().height,
@@ -179,6 +178,8 @@ Image.prototype = {
         window.onmousemove = null;
         window.onmouseup = null;
         this.isRotate = false;
+        var oCanvas = this.superClass.canvasObj[0];
+        oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
     },
 
     // 缩放开始
@@ -253,6 +254,8 @@ Image.prototype = {
         window.onmousemove = null;
         window.onmouseup = null;
         this.isScale = false;
+        var oCanvas = this.superClass.canvasObj[0];
+        oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
     },
 
     // 计算某点在某线段的左侧还是右侧

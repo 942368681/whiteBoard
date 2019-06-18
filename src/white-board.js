@@ -183,15 +183,15 @@ if (!Date.now) {
         addPage: function () {
             this.options.zIndexInfo[0].page += 1;
             this.initLayout();
-            this.options.addCallBack();
+            if (this.options.addCallBack && typeof this.options.addCallBack === 'function') this.options.addCallBack();
         },
 
         // 获取随机位置
         getRandomPosition: function () {
             var clientW = this.wrapDom.clientWidth;
             var clientH = this.wrapDom.clientHeight;
-            var xRange = [clientW * 0.2, clientW - clientW * 0.4];
-            var yRange = [clientH * 0.2, clientH - clientH * 0.4];
+            var xRange = [clientW * 0.2, clientW * 0.5];
+            var yRange = [clientH * 0.2, clientH * 0.5];
             return {
                 x: Math.round(Math.random() * (xRange[1] - xRange[0]) + xRange[0]),
                 y: Math.round(Math.random() * (yRange[1] - yRange[0]) + yRange[0])
@@ -219,7 +219,8 @@ if (!Date.now) {
 
         // 插入多媒体模块及n2笔svg图片
         createMediaDom: function (type, data, initDrag) {
-            var oIndexTotal = this.findMaxIndex(this.canvasObj[0].info.other);
+            var oCanvas = this.canvasObj[0];
+            var oIndexTotal = this.findMaxIndex(oCanvas.info.other);
             oIndexTotal += 1;
             var dom = null;
             var info = {
@@ -250,9 +251,10 @@ if (!Date.now) {
                     alert("未知类型控件");
                     break;
             }
-            this.canvasObj[0].info.other[type].push(info);
-            this.canvasObj[0].el.parentNode.appendChild(dom);
-            if (initDrag) new Drag(dom, this.canvasObj[0].el.parentNode);
+            oCanvas.info.other[type].push(info);
+            oCanvas.el.parentNode.appendChild(dom);
+            oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
+            if (initDrag) new Drag(dom, oCanvas);
         },
 
         // 通知元素已被删除
@@ -273,6 +275,7 @@ if (!Date.now) {
 
     /******************************* 单个canvas画布对象 **********************************/
     var Canvas = function (el, obj, watcher, callBack) {
+        this.timeout = null;
         this.el = el;
         this.info = obj;
         this.canvasSettings = {
@@ -379,14 +382,14 @@ if (!Date.now) {
                 this.el.addEventListener('mousedown', _self.callBack);
             }
 
-            if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+            if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
         // 防抖
         debounce: function (func, wait) {
-            var timeout;
+            var _self = this;
             return function () {
-                clearTimeout(timeout);
-                timeout = setTimeout(func, wait);
+                clearTimeout(_self.timeout);
+                _self.timeout = setTimeout(func, wait);
             }
         },
         // 触摸事件开始
@@ -408,7 +411,7 @@ if (!Date.now) {
                 canvasSettings: Object.assign({}, this.canvasSettings)
             };
 
-            if (!window.requestAnimationFrame) this.drawing();
+            if (!w.requestAnimationFrame) this.drawing();
     
             e.stopPropagation();
             e.preventDefault();
@@ -434,7 +437,7 @@ if (!Date.now) {
             // this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
             // this.curve.path.push([this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y]);
     
-            if (!window.requestAnimationFrame) this.drawing();
+            if (!w.requestAnimationFrame) this.drawing();
 
             e.stopPropagation();
             e.preventDefault();
@@ -477,7 +480,7 @@ if (!Date.now) {
                     this.coords.oldMid = currentMid;
                 }
             }
-            if (window.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+            if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
 
         // 去除一条匹配的轨迹
@@ -646,57 +649,64 @@ if (!Date.now) {
     /*************************************************************************/
     
     /********************************* 拖拽类 *********************************/
-    function Drag(dom, wrapDom) {
-        this.wrapDom = wrapDom;
+    function Drag(dom, oCanvas) {
+        this.oCanvas = oCanvas;
+        this.wrapDom = oCanvas.el.parentNode;
         this.dom = dom;
         this.flag = false;
-        var self = this;
+        var _self = this;
 
-        self.dom.addEventListener("mousedown", function (e) {
-            self.down(self);
+        _self.dom.addEventListener("mousedown", function (ev) {
+            ev.preventDefault();
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.down(_self);
         }, false);
-        self.dom.addEventListener("touchstart", function (e) {
-            self.down(self);
+        _self.dom.addEventListener("touchstart", function (ev) {
+            ev.preventDefault();
+            ev.cancelBubble = true;
+            ev.stopPropagation();
+            _self.down(_self);
         }, false)
 
     }
     //按下
-    Drag.prototype.down = function (self) {
-        self.flag = true;
+    Drag.prototype.down = function (_self) {
+        _self.flag = true;
         var touch;
         if (event.touches) {
             touch = event.touches[0];
         } else {
             touch = event;
         }
-        var offLeft = touch.clientX - self.dom.offsetLeft; //当前点击点相对元素左边框的距离
-        var offTop = touch.clientY - self.dom.offsetTop; //当前点击点相对元素上边框的距离
+        var offLeft = touch.clientX - _self.dom.offsetLeft; //当前点击点相对元素左边框的距离
+        var offTop = touch.clientY - _self.dom.offsetTop; //当前点击点相对元素上边框的距离
 
-        w.addEventListener("mousemove", function () {
-            self.move(self, offLeft, offTop);
-        }, false);
+        window.onmousemove = function () {
+            _self.move(_self, offLeft, offTop);
+        }
+        window.onmouseup = function () {
+            _self.end(_self, offLeft, offTop);
+        }
         w.addEventListener("touchmove", function () {
-            self.move(self, offLeft, offTop);
-        }, false)
-        w.addEventListener("mouseup", function () {
-            self.end(self);
+            _self.move(_self, offLeft, offTop);
         }, false);
         w.addEventListener("touchend", function () {
-            self.end(self);
+            _self.end(_self);
         }, false);
     }
     //移动
-    Drag.prototype.move = function (self, offLeft, offTop) {
+    Drag.prototype.move = function (_self, offLeft, offTop) {
         var sty = null;
         if (w.getComputedStyle) {
-            sty = w.getComputedStyle(self.dom, null); // 非IE
+            sty = w.getComputedStyle(_self.dom, null); // 非IE
         } else {
-            sty = self.dom.currentStyle; // IE
+            sty = _self.dom.currentStyle; // IE
         }
-        var maxLeft = self.wrapDom.clientWidth - sty.width.split('px')[0] - 20; //当前元素可移动的最大左偏移
-        var maxTop = self.wrapDom.clientHeight - sty.height.split('px')[0] - 20; //当前元素可移动的最大上偏移
+        var maxLeft = _self.wrapDom.clientWidth - sty.width.split('px')[0] - 20; //当前元素可移动的最大左偏移
+        var maxTop = _self.wrapDom.clientHeight - sty.height.split('px')[0] - 20; //当前元素可移动的最大上偏移
 
-        if (self.flag) {
+        if (_self.flag) {
             var touch;
             if (event.touches) {
                 touch = event.touches[0];
@@ -716,13 +726,17 @@ if (!Date.now) {
                 endY = maxTop;
             }
 
-            self.dom.style.left = endX + "px";
-            self.dom.style.top = endY + "px";
+            _self.dom.style.left = endX + "px";
+            _self.dom.style.top = endY + "px";
         }
     }
     //释放
-    Drag.prototype.end = function (self) {
-        self.flag = false;
+    Drag.prototype.end = function (_self) {
+        if (!_self.flag) return;
+        window.onmousemove = null;
+        window.onmouseup = null;
+        _self.flag = false;
+        _self.oCanvas.debounce(_self.oCanvas.watcher.cb, _self.oCanvas.watcher.wait)();
     }
     /***********************************************************************************/
 

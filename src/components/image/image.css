@@ -1,6 +1,6 @@
 .board-drag-img {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     position: absolute;
     background: #f1f1f1;
     display: flex;
@@ -43,7 +43,7 @@
 .board-drag-img i.board-delete {
     left: 50%;
     margin-left: -8px;
-    bottom: 6px;
+    bottom: 4px;
     color: #FF3636;
 }
 .board-base-point {
