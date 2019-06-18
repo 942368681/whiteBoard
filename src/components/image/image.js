@@ -9,7 +9,7 @@ export const Image = function (data, coordinate, Z_INDEX_TOTAL, info, superClass
     this.superClass = superClass;
     this.isScale = false;
     this.isRotate = false;
-    this.setInfo({type: 'img'});
+    this.setInfo({type: 'img', info: { url: data }});
     this.init();
 };
 
@@ -41,15 +41,26 @@ Image.prototype = {
 
         var deleteIconDom = document.createElement('i');
         deleteIconDom.setAttribute('class', 'boardIcon board-icon-shanchu board-delete');
+
+        var basePoint = document.createElement('b');
+        basePoint.setAttribute('class', 'board-base-point');
+
+        var baseXpoint = document.createElement('b');
+        baseXpoint.setAttribute('class', 'board-base-x-point');
+
+        var baseYpoint = document.createElement('b');
+        baseYpoint.setAttribute('class', 'board-base-y-point');
         
         this.dom.appendChild(img);
         this.dom.appendChild(rotateIconDom);
         this.dom.appendChild(scaleIconDom);
         this.dom.appendChild(deleteIconDom);
+        this.dom.appendChild(basePoint);
+        this.dom.appendChild(baseXpoint);
+        this.dom.appendChild(baseYpoint);
 
         img.onload = () => {
             console.log(this.dom.getBoundingClientRect());
-            
         }
 
         this.bindEvents();
@@ -159,6 +170,7 @@ Image.prototype = {
             oRotate = Math.asin(a / c);
         }
         _self.dom.style.transform = 'rotate(' + oRotate + 'rad)';
+        _self.dom.style["transform-origin"] = 'left top';
     },
 
     // 旋转结束
@@ -179,14 +191,26 @@ Image.prototype = {
             'x': coords.x,
             'y': coords.y
         };
+        var basePoint = {
+            x: Number(_self.dom.getElementsByClassName('board-base-point')[0].getBoundingClientRect().left.toFixed(0)),
+            y: Number(_self.dom.getElementsByClassName('board-base-point')[0].getBoundingClientRect().top.toFixed(0))
+        };
+        var baseXpoint = {
+            x: Number(_self.dom.getElementsByClassName('board-base-x-point')[0].getBoundingClientRect().left.toFixed(0)),
+            y: Number(_self.dom.getElementsByClassName('board-base-x-point')[0].getBoundingClientRect().top.toFixed(0)),
+        };
+        var baseYpoint = {
+            x: Number(_self.dom.getElementsByClassName('board-base-y-point')[0].getBoundingClientRect().left.toFixed(0)),
+            y: Number(_self.dom.getElementsByClassName('board-base-y-point')[0].getBoundingClientRect().top.toFixed(0)),
+        };
         window.onmousemove = function (ev) {
-            _self.scaleing(pos, ev);
+            _self.scaleing(pos, basePoint, baseXpoint, baseYpoint, ev);
         };
         window.onmouseup = function () {
             _self.scaleEnd();
         };
         window.addEventListener('touchmove', function (ev) {
-            _self.scaleing(pos, ev);
+            _self.scaleing(pos, basePoint, baseXpoint, baseYpoint, ev);
         });
         window.addEventListener('touchend', function () {
             _self.scaleEnd();
@@ -194,12 +218,29 @@ Image.prototype = {
     },
 
     // 缩放中
-    scaleing: function (pos, ev) {
+    scaleing: function (pos, basePoint, baseXpoint, baseYpoint, ev) {
         if (!this.isScale) return;
         var _self = this;
+
+        var resultX = _self.computeOffset(basePoint, baseXpoint, _self.getPos(ev));
+        var resultY = _self.computeOffset(basePoint, baseYpoint, _self.getPos(ev));
+        var disX = Number(_self.distanceOfPoint2Line(basePoint, baseXpoint, _self.getPos(ev)).toFixed(0));
+        var disY = Number(_self.distanceOfPoint2Line(basePoint, baseYpoint, _self.getPos(ev)).toFixed(0));
+
+        if (resultX >= 0 ) {
+            disX = disX;
+        } else {
+            disX = -disX;
+        }
+        if (resultY < 0 ) {
+            disY = disY;
+        } else {
+            disY = -disY;
+        }
+
         var wrapDom = this.superClass.canvasObj[0].el.parentNode;
-        var w = Math.max(90, _self.getPos(ev).x - pos.x + pos.w);
-        var h = Math.max(120, _self.getPos(ev).y - pos.y + pos.h);
+        var w = Math.max(120, pos.w + disX);
+        var h = Math.max(120, pos.h + disY);
         w = w >= wrapDom.offsetWidth - _self.dom.offsetLeft - 20 ? wrapDom.offsetWidth - _self.dom.offsetLeft - 20 : w;
         h = h >= wrapDom.offsetHeight - _self.dom.offsetTop - 20 ? wrapDom.offsetHeight - _self.dom.offsetTop - 20 : h;
         _self.dom.style.width = w + 'px';
@@ -214,6 +255,34 @@ Image.prototype = {
         this.isScale = false;
     },
 
+    // 计算某点在某线段的左侧还是右侧
+    computeOffset: function (basePoint, point, pos) {
+        var p1 = [basePoint.x - pos.x, basePoint.y - pos.y];
+        var p2 = [point.x - pos.x, point.y - pos.y];
+        return p1[0]*p2[1] - p1[1]*p2[0];
+    },
+
+    /**
+     * 计算某点到直线的垂直距离
+     * @param {x, y} p1 直线上的点p1
+     * @param {x, y} p2 直线上的点p2
+     * @param {x, y} p3 直线外的点
+     */
+    distanceOfPoint2Line: function (p1, p2, p3) {
+        var len;
+
+        if (p1.x - p2.x == 0) {
+            len = Math.abs(p3.x - p1.x)
+        } else {
+            var A = (p1.y - p2.y) / (p1.x - p2.x)
+            var B = p1.y - A * p1.x
+
+            len = Math.abs((A * p3.x + B - p3.y) / Math.sqrt(A * A + 1))
+        }
+
+        return len;
+    },
+
     // 计算鼠标或手指位置
     getPos: function (e) {
         var x, y;
@@ -225,8 +294,8 @@ Image.prototype = {
             y = e.pageY;
         }
         return {
-            x: x.toFixed(0),
-            y: y.toFixed(0)
+            x: Number(x.toFixed(0)),
+            y: Number(y.toFixed(0))
         }
     }
 

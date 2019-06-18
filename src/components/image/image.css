@@ -1,5 +1,5 @@
 .board-drag-img {
-    width: 122px;
+    width: 150px;
     height: 150px;
     position: absolute;
     background: #f1f1f1;
@@ -45,4 +45,19 @@
     margin-left: -8px;
     bottom: 6px;
     color: #FF3636;
+}
+.board-base-point {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+.board-base-y-point {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+}
+.board-base-x-point {
+    position: absolute;
+    right: 0;
+    top: 0;
 }

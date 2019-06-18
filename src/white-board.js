@@ -115,6 +115,15 @@ if (!Date.now) {
                 this.createCanvas(item, this.options.watcher, this.options.callBack);
             }
 
+            // 加纸按钮
+            var addPageBtn = document.createElement('button');
+            addPageBtn.setAttribute('class', 'boardIcon board-icon-jia board-add-page');
+            this.wrapDom.appendChild(addPageBtn);
+            var _self = this;
+            addPageBtn.onclick = function () {
+                _self.addPage();
+            }; 
+
             // 测试多媒体控件dom接入
             /* var testBtn = document.createElement('button');
             testBtn.innerText = "img";
@@ -137,17 +146,6 @@ if (!Date.now) {
             testBtn.onclick = function () {
                 _self.createMediaDom('audio', "", true);
             }; */
-
-            // 测试加纸
-            /* var testBtn = document.createElement('button');
-            testBtn.innerText = "addPage";
-            testBtn.style.position = 'absolute';
-            testBtn.style.zIndex = 999;
-            this.wrapDom.appendChild(testBtn);
-            var _self = this;
-            testBtn.onclick = function () {
-                _self.addPage();
-            };  */
 
             // 测试橡皮擦 && 画笔
             /* var testBtn = document.createElement('button');
@@ -183,9 +181,9 @@ if (!Date.now) {
 
         // 当前顶层画布加页
         addPage: function () {
-            console.log(this.options.zIndexInfo[0]);
             this.options.zIndexInfo[0].page += 1;
             this.initLayout();
+            this.options.addCallBack();
         },
 
         // 获取随机位置
