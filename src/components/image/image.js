@@ -157,7 +157,7 @@ Image.prototype = {
             oRotate = Math.asin(a / c);
         }
         _self.dom.style.transform = 'rotate(' + oRotate + 'rad)';
-        _self.dom.style["transform-origin"] = 'left top';
+        // _self.dom.style["transform-origin"] = 'left top';
     },
 
     // 旋转结束
@@ -294,9 +294,9 @@ Image.prototype = {
 
     // 设置该图片实例dom信息
     setDomInfo: function (type) {
+        var oStyle = window.getComputedStyle(this.dom);
         switch (type) {
             case 'scale':
-                var oStyle = window.getComputedStyle(this.dom);
                 this.info.info.width = oStyle.width;
                 this.info.info.height = oStyle.height;
                 break;

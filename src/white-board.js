@@ -300,8 +300,8 @@ if (!Date.now) {
         // this.locus = null;
         this.curve = null;
         this.setUp(this.initSettings(obj));
-        // this.initMediaComps(obj.other);
         this.drawingContent(Object.assign({}, this.canvasSettings));
+        this.initMediaComps(obj.other);
         if (!obj.disabled) {
             this.initDrawEvent();
         }
@@ -310,18 +310,6 @@ if (!Date.now) {
     Canvas.prototype = {
         // 初始设置参数获取
         initSettings: function (obj) {
-            /* var o = null;
-            if (obj.content && obj.content.length) {
-                this.setUp(obj.content[obj.content.length - 1].canvasSettings);
-            } else {
-                o = {
-                    strokeStyle: obj.color || '#000000',
-                    lineWidth: obj.size || 2,
-                    lineCap: "round",
-                    globalCompositeOperation: obj.inputType && obj.inputType === 'fluorescent-pen' ? 'darken' : 'source-over',
-                    inputType: obj.inputType || 'fountain-pen'
-                }
-            } */
             return {
                 strokeStyle: obj.color || '#000000',
                 lineWidth: obj.size || 2,
@@ -662,16 +650,11 @@ if (!Date.now) {
         drawComps: function (data, type) {
             switch (type) {
                 case 'img':
-                    // this.superClass.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
-                    /* var dom = new Image(info, this).dom;
-                    if (initDrag) new Drag(dom, this, info); */
-                    // console.log(JSON.stringify(data))
                     for (var i = 0, len = data.length; i < len; i++) {
-                        var dom = new Image(data[i], this).dom;
+                        var dom = new Image(data[i], this.superClass).dom;
                         new Drag(dom, this, data[i]);
                         this.el.parentNode.appendChild(dom);
                     }
-                    console.log(this.info)
                     break;
             
                 default:
@@ -779,7 +762,7 @@ if (!Date.now) {
         _self.oCanvas.debounce(_self.oCanvas.watcher.cb, _self.oCanvas.watcher.wait)();
         var oStyle = w.getComputedStyle(_self.dom);
         _self.info.info.left = oStyle.left;
-        _self.info.info.height = oStyle.top;
+        _self.info.info.top = oStyle.top;
     }
     /***********************************************************************************/
 
