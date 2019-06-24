@@ -1,6 +1,4 @@
 .board-drag-img {
-    width: 120px;
-    height: 120px;
     position: absolute;
     background: #f1f1f1;
     display: flex;

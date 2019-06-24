@@ -112,7 +112,7 @@ if (!Date.now) {
 
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
-                this.createCanvas(item, this.options.watcher, this.options.writeCallBack);
+                this.createCanvas(item);
             }
 
             // 加纸按钮
@@ -161,7 +161,7 @@ if (!Date.now) {
         },
 
         // 单个画布的创建
-        createCanvas: function (obj, watcher, writeCallBack) {
+        createCanvas: function (obj) {
             var parentEl = d.createElement('div');
             parentEl.setAttribute('class', 'board-box board-box-' + obj.zIndex);
             parentEl.style.height = (obj.page || 1)*this.pageHeight + 'px';
@@ -175,7 +175,7 @@ if (!Date.now) {
             parentEl.appendChild(canvas);
             
             // 初始化画板对象
-            var c = new Canvas(canvas, obj, watcher, writeCallBack);
+            var c = new Canvas(canvas, obj, this);
             this.canvasObj.push(c);
         },
 
@@ -224,15 +224,20 @@ if (!Date.now) {
             oIndexTotal += 1;
             var dom = null;
             var info = {
-                type: "", // 类型
+                type: type, // 类型
                 zIndex: "", // 当前层级画板的层级
                 info: {} // 具体信息
             };
             var coordinate = this.getRandomPosition();
             switch (type) {
                 case 'img':
-                    dom = new Image(data, coordinate, oIndexTotal, info, this).dom;
                     info.zIndex = oIndexTotal;
+                    info.info.url = data;
+                    info.info.left = coordinate.x + 'px';
+                    info.info.top = coordinate.y + 'px';
+                    info.info.width = '120px';
+                    info.info.height = '120px';
+                    dom = new Image(info, this).dom;
                     break;
                 case 'video':
                     alert("暂不支持");
@@ -254,7 +259,7 @@ if (!Date.now) {
             oCanvas.info.other[type].push(info);
             oCanvas.el.parentNode.appendChild(dom);
             oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
-            if (initDrag) new Drag(dom, oCanvas);
+            if (initDrag) new Drag(dom, oCanvas, info);
         },
 
         // 通知元素已被删除
@@ -274,8 +279,9 @@ if (!Date.now) {
 
 
     /******************************* 单个canvas画布对象 **********************************/
-    var Canvas = function (el, obj, watcher, writeCallBack) {
+    var Canvas = function (el, obj, superClass) {
         this.timeout = null;
+        this.superClass = superClass;
         this.el = el;
         this.info = obj;
         this.canvasSettings = {
@@ -286,14 +292,15 @@ if (!Date.now) {
             inputType: ''
         };
         this.rubberRange = 5;
-        this.watcher = watcher;
-        this.writeCallBack = writeCallBack;
+        this.watcher = superClass.options.watcher;
+        this.writeCallBack = superClass.options.writeCallBack;
         this.isDrawing = false;
         this.coords = {};
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
         // this.locus = null;
         this.curve = null;
         this.setUp(this.initSettings(obj));
+        // this.initMediaComps(obj.other);
         this.drawingContent(Object.assign({}, this.canvasSettings));
         if (!obj.disabled) {
             this.initDrawEvent();
@@ -645,6 +652,32 @@ if (!Date.now) {
             // 恢复上一次的设置
             this.setUp(canvasSettings);
         },
+        // 初始化其他内容（多媒体控件）
+        initMediaComps: function (o) {
+            for (var key in o) {
+                if (o[key].length) this.drawComps(o[key], key);
+            }
+        },
+        // 初始化多媒体控件布局
+        drawComps: function (data, type) {
+            switch (type) {
+                case 'img':
+                    // this.superClass.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
+                    /* var dom = new Image(info, this).dom;
+                    if (initDrag) new Drag(dom, this, info); */
+                    // console.log(JSON.stringify(data))
+                    for (var i = 0, len = data.length; i < len; i++) {
+                        var dom = new Image(data[i], this).dom;
+                        new Drag(dom, this, data[i]);
+                        this.el.parentNode.appendChild(dom);
+                    }
+                    console.log(this.info)
+                    break;
+            
+                default:
+                    break;
+            }
+        },
         // 清除画布的所有内容
         clearAll: function () {
             var canvas = this.el;
@@ -655,10 +688,11 @@ if (!Date.now) {
     /*************************************************************************/
     
     /********************************* 拖拽类 *********************************/
-    function Drag(dom, oCanvas) {
+    function Drag(dom, oCanvas, info) {
         this.oCanvas = oCanvas;
         this.wrapDom = oCanvas.el.parentNode;
         this.dom = dom;
+        this.info = info;
         this.flag = false;
         var _self = this;
 
@@ -743,6 +777,9 @@ if (!Date.now) {
         window.onmouseup = null;
         _self.flag = false;
         _self.oCanvas.debounce(_self.oCanvas.watcher.cb, _self.oCanvas.watcher.wait)();
+        var oStyle = w.getComputedStyle(_self.dom);
+        _self.info.info.left = oStyle.left;
+        _self.info.info.height = oStyle.top;
     }
     /***********************************************************************************/
 

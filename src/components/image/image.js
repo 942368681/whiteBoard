@@ -1,31 +1,23 @@
 import './image.css';
 
-export const Image = function (data, coordinate, Z_INDEX_TOTAL, info, superClass) {
-    this.url = data;
-    this.coordinate = coordinate;
-    this.zIndex = Z_INDEX_TOTAL;
-    this.dom = null;
+export const Image = function (info, superClass) {
     this.info = info;
+    this.url = info.info.url;
+    this.zIndex = info.zIndex;
+    this.dom = null;
     this.superClass = superClass;
     this.isScale = false;
     this.isRotate = false;
-    this.setInfo({type: 'img', info: { url: data }});
     this.init();
 };
 
 Image.prototype = {
-    // 设置属性
-    setInfo: function (obj) {
-        for (var key in obj) {
-            this.info[key] = obj[key];
-        }
-        console.log(this.info);
-    },
     // dom初始化
     init: function () {
         this.dom = document.createElement('div');
         this.dom.setAttribute("class", "board-drag-img");
-        this.dom.style.cssText = "left: " + this.coordinate.x + "px; top: " + this.coordinate.y + "px; z-index: " + this.zIndex + "";
+        this.dom.style.cssText = "left: " + this.info.info.left + "; top: " + this.info.info.top + "; z-index: " + this.zIndex + "; width:"+ this.info.info.width +"; height: "+ this.info.info.height +"";
+        if (this.info.info.rotate) this.dom.style.transform = this.info.info.rotate;
 
         var img = document.createElement('img');
         img.setAttribute('src', this.url);
@@ -58,10 +50,6 @@ Image.prototype = {
         this.dom.appendChild(basePoint);
         this.dom.appendChild(baseXpoint);
         this.dom.appendChild(baseYpoint);
-
-        img.onload = () => {
-            console.log(this.dom.getBoundingClientRect());
-        }
 
         this.bindEvents();
     },
@@ -180,6 +168,7 @@ Image.prototype = {
         this.isRotate = false;
         var oCanvas = this.superClass.canvasObj[0];
         oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
+        this.setDomInfo('rotate');
     },
 
     // 缩放开始
@@ -256,6 +245,7 @@ Image.prototype = {
         this.isScale = false;
         var oCanvas = this.superClass.canvasObj[0];
         oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
+        this.setDomInfo('scale');
     },
 
     // 计算某点在某线段的左侧还是右侧
@@ -299,6 +289,22 @@ Image.prototype = {
         return {
             x: Number(x.toFixed(0)),
             y: Number(y.toFixed(0))
+        }
+    },
+
+    // 设置该图片实例dom信息
+    setDomInfo: function (type) {
+        switch (type) {
+            case 'scale':
+                var oStyle = window.getComputedStyle(this.dom);
+                this.info.info.width = oStyle.width;
+                this.info.info.height = oStyle.height;
+                break;
+            case 'rotate':
+                this.info.info.rotate = this.dom.style.transform;
+                break;
+            default:
+                break;
         }
     }
 
