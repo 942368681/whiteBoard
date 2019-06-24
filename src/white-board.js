@@ -258,20 +258,25 @@ if (!Date.now) {
             }
             oCanvas.info.other[type].push(info);
             oCanvas.el.parentNode.appendChild(dom);
+            // 此层画板变为更新状态
+            oCanvas.info.update = true;
             oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
             if (initDrag) new Drag(dom, oCanvas, info);
         },
 
         // 通知元素已被删除
         deleteElFromOtherData: function (type, zIndex, dom) {
-            for (var i = 0, len = this.canvasObj[0].info.other[type].length; i < len; i++) {
-                if (this.canvasObj[0].info.other[type][i].zIndex === zIndex) {
-                    this.canvasObj[0].info.other[type].splice(i, 1);
+            var oCanvas = this.canvasObj[0];
+            for (var i = 0, len = oCanvas.info.other[type].length; i < len; i++) {
+                if (oCanvas.info.other[type][i].zIndex === zIndex) {
+                    oCanvas.info.other[type].splice(i, 1);
                     break;
                 }
             }
-            this.canvasObj[0].el.parentNode.removeChild(dom);
-            console.log(this.canvasObj[0].info.other[type]);
+            oCanvas.el.parentNode.removeChild(dom);
+            // 此层画板变为更新状态
+            oCanvas.info.update = true;
+            oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
         }
     };
 
@@ -333,7 +338,7 @@ if (!Date.now) {
             this.ctx.lineCap = this.canvasSettings.lineCap;
             this.ctx.globalCompositeOperation = this.canvasSettings.inputType === 'fluorescent-pen' ? 'darken' : 'source-over';
         },
-        // 基础绘图功能
+        // 画板事件绑定
         initDrawEvent: function () {
             var _self = this;
             
@@ -759,6 +764,8 @@ if (!Date.now) {
         window.onmousemove = null;
         window.onmouseup = null;
         _self.flag = false;
+        // 此层画板变为更新状态
+        _self.oCanvas.info.update = true;
         _self.oCanvas.debounce(_self.oCanvas.watcher.cb, _self.oCanvas.watcher.wait)();
         var oStyle = w.getComputedStyle(_self.dom);
         _self.info.info.left = oStyle.left;

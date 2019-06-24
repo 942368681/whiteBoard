@@ -62,13 +62,13 @@ Image.prototype = {
         var deleteBtn = this.dom.getElementsByClassName('board-delete')[0];
 
         // 绑定删除事件
-        deleteBtn.addEventListener('mousedown', function (ev) {
+        deleteBtn.addEventListener('mouseup', function (ev) {
             ev.cancelBubble = true;
             ev.stopPropagation();
             _self.deleteIt('img', _self.zIndex, _self.dom);
 
         });
-        deleteBtn.addEventListener('touchstart', function (ev) {
+        deleteBtn.addEventListener('touchend', function (ev) {
             ev.cancelBubble = true;
             ev.stopPropagation();
             _self.deleteIt('img', _self.zIndex, _self.dom);
@@ -167,6 +167,8 @@ Image.prototype = {
         window.onmouseup = null;
         this.isRotate = false;
         var oCanvas = this.superClass.canvasObj[0];
+        // 此层画板变为更新状态
+        oCanvas.info.update = true;
         oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
         this.setDomInfo('rotate');
     },
@@ -244,6 +246,8 @@ Image.prototype = {
         window.onmouseup = null;
         this.isScale = false;
         var oCanvas = this.superClass.canvasObj[0];
+        // 此层画板变为更新状态
+        oCanvas.info.update = true;
         oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
         this.setDomInfo('scale');
     },
