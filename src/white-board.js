@@ -104,11 +104,8 @@ if (!Date.now) {
             this.wrapDom.style.height = maxPage*this.pageHeight + 'px';
             this.wrapDom.style.position = 'relative';
 
-            // 清理dom和已挂载到canvasObj的canvas实例
-            while (this.wrapDom.children.length) {
-                this.wrapDom.removeChild(this.wrapDom.firstElementChild);
-            }
-            this.canvasObj = [];
+            // 清理dom和已挂载到canvasObj的canvas实例和其他元素
+            this.clearWrapDom(this.wrapDom);
 
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
@@ -158,6 +155,15 @@ if (!Date.now) {
                 // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
                 _self.canvasObj[0].setUp({ inputType: 'rubber'});
             }; */
+        },
+
+        clearWrapDom: function (wrapDom) {
+            while (wrapDom.children.length) {
+                var oDom = wrapDom.firstElementChild;
+                wrapDom.removeChild(oDom);
+                oDom = null;
+            }
+            this.canvasObj = [];
         },
 
         // 单个画布的创建
@@ -274,6 +280,7 @@ if (!Date.now) {
                 }
             }
             oCanvas.el.parentNode.removeChild(dom);
+            dom = null;
             // 此层画板变为更新状态
             oCanvas.info.update = true;
             oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
@@ -409,8 +416,6 @@ if (!Date.now) {
             this.coords.current = this.coords.old = coords;
             this.coords.oldMid = this.getMidInputCoords(coords);
             
-            console.log(this.coords);
-
             // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
             this.curve = {
                 path: [],
