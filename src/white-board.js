@@ -300,7 +300,6 @@ if (!Date.now) {
             strokeStyle: '',
             lineWidth: '',
             lineCap: '',
-            globalCompositeOperation: '',
             inputType: ''
         };
         this.rubberRange = 5;
@@ -326,7 +325,6 @@ if (!Date.now) {
                 strokeStyle: obj.color || '#000000',
                 lineWidth: obj.size || 2,
                 lineCap: "round",
-                globalCompositeOperation: obj.inputType && obj.inputType === 'fluorescent-pen' ? 'darken' : 'source-over',
                 inputType: obj.inputType || 'fountain-pen'
             };
         },

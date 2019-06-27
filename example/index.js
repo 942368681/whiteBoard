@@ -1,7 +1,6 @@
 import '../src/white-board';
 window.oCanvas = window.WhiteBoard({
     "el": ".box",
-    "toolBar": true,
     "zIndexInfo": [{
         "inputType": "fountain-pen", // rubber, fountain-pen, fluorescent-pen
         // "disabled": true,
@@ -139,7 +138,6 @@ window.oCanvas = window.WhiteBoard({
                     "strokeStyle": "#039be5",
                     "lineWidth": 2,
                     "lineCap": "round",
-                    "globalCompositeOperation": 'source-over',
                     "inputType": 'fountain-pen'
                 }
             }
@@ -228,7 +226,6 @@ window.oCanvas = window.WhiteBoard({
                     "strokeStyle": "#FF9500",
                     "lineWidth": 2,
                     "lineCap": "round",
-                    "globalCompositeOperation": 'source-over',
                     "inputType": 'fountain-pen'
                 }
             }
