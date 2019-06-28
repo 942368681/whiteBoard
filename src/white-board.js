@@ -187,8 +187,12 @@ if (!Date.now) {
 
         // 当前顶层画布加页
         addPage: function () {
+            if (this.options.zIndexInfo[0].page === this.options.maxPage) return;
             this.options.zIndexInfo[0].page += 1;
             this.initLayout();
+            if (this.options.zIndexInfo[0].page === this.options.maxPage) {
+                document.getElementsByClassName('board-add-page')[0].classList.add('disable');
+            };
             if (this.options.addCallBack && typeof this.options.addCallBack === 'function') this.options.addCallBack();
         },
 
@@ -703,6 +707,7 @@ if (!Date.now) {
     }
     //按下
     Drag.prototype.down = function (_self) {
+        console.log(11111);
         _self.flag = true;
         var touch;
         if (event.touches) {
@@ -764,6 +769,7 @@ if (!Date.now) {
     //释放
     Drag.prototype.end = function (_self) {
         if (!_self.flag) return;
+        console.log(2222)
         window.onmousemove = null;
         window.onmouseup = null;
         _self.flag = false;

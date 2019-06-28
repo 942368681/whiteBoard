@@ -30,3 +30,6 @@
     border: 0;
     outline: none;
 }
+.board-add-page.disable {
+    background: #999;
+}

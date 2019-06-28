@@ -29,6 +29,7 @@ import 'canvas-board';
 ```bash
 var myboard = window.WhiteBoard({
     "el": ".box",
+    "maxPage": 5,
     "zIndexInfo": [{
         "inputType": "fountain-pen",
         "disabled": false,
@@ -135,6 +136,7 @@ var myboard = window.WhiteBoard({
 
 ```bash
     el: 画板容器元素,支持id选择符,类选择符和元素选择符 | String
+    maxPage: 画板最大页数 | Number
     zIndexInfo: 画板初始化层级以及每层画布的初始参数(详情见zIndexInfo说明)，支持多级画布 | Array
     watcher: 画板进行操作后的异步回调 | Object
     writeCallBack： 画板进行操作时同步执行的回调 | Object

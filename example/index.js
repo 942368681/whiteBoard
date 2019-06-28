@@ -1,6 +1,7 @@
 import '../src/white-board';
 window.oCanvas = window.WhiteBoard({
     "el": ".box",
+    "maxPage": 5,
     "zIndexInfo": [{
         "inputType": "fountain-pen", // rubber, fountain-pen, fluorescent-pen
         // "disabled": true,

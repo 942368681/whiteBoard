@@ -62,7 +62,7 @@ Image.prototype = {
         var deleteBtn = this.dom.getElementsByClassName('board-delete')[0];
 
         // 绑定删除事件
-        deleteBtn.addEventListener('mouseup', function (ev) {
+        deleteBtn.addEventListener('click', function (ev) {
             ev.cancelBubble = true;
             ev.stopPropagation();
             _self.deleteIt('img', _self.zIndex, _self.dom);
@@ -92,12 +92,12 @@ Image.prototype = {
         });
 
         // 绑定旋转事件
-        rotateBtn.addEventListener('mousedown', function (ev) {
+        rotateBtn.addEventListener('click', function (ev) {
             ev.preventDefault();
             ev.cancelBubble = true;
             ev.stopPropagation();
             _self.isRotate = true;
-            _self.rotateStart(ev);
+            _self.rotateIt(ev);
 
         });
         rotateBtn.addEventListener('touchstart', function (ev) {
@@ -105,7 +105,7 @@ Image.prototype = {
             ev.cancelBubble = true;
             ev.stopPropagation();
             _self.isRotate = true;
-            _self.rotateStart(ev);
+            _self.rotateIt(ev);
         });
     },
 
@@ -114,58 +114,16 @@ Image.prototype = {
         this.superClass.deleteElFromOtherData(type, zIndex, dom);
     },
 
-    // 旋转开始
-    rotateStart: function (e) {
-        var _self = this;
-        var coords = this.getPos(e);
-        var pos = {
-            'w': this.dom.getBoundingClientRect().width,
-            'h': this.dom.getBoundingClientRect().height,
-            'x': coords.x,
-            'y': coords.y
-        };
-        window.onmousemove = function (ev) {
-            _self.rotateing(pos, ev);
-        };
-        window.onmouseup = function () {
-            _self.rotateEnd();
-        };
-        window.addEventListener('touchmove', function (ev) {
-            _self.rotateing(pos, ev);
-        });
-        window.addEventListener('touchend', function () {
-            _self.rotateEnd();
-        });
-    },
-
-    // 旋转中
-    rotateing: function (pos, ev) {
-        if (!this.isRotate) return;
-        var _self = this;
-        var oRotate;
-        var a = _self.getPos(ev).x - pos.x;
-        var b = _self.getPos(ev).y - pos.y;
-        var c = Math.sqrt(a * a + b * b);
-        if (a > 0 && b > 0) {
-            oRotate = Math.asin(b / c) + 90 * Math.PI / 180;
-        } else if (a > 0) {
-            oRotate = Math.asin(a / c);
+    // 旋转（顺时针一次90deg）
+    rotateIt: function () {
+        var trans = this.dom.style.transform;
+        if (!trans) {
+            this.dom.style.transform = 'rotate(90deg)';
+        } else {
+            var prevDeg = Number(trans.match(/\((.+)\d/g)[0].substr(1));
+            prevDeg += 90;
+            this.dom.style.transform = 'rotate('+ prevDeg +'deg)';
         }
-        if (a < 0 && b > 0) {
-            oRotate = -(Math.asin(b / c) + 90 * Math.PI / 180);
-        } else if (a < 0) {
-            oRotate = Math.asin(a / c);
-        }
-        _self.dom.style.transform = 'rotate(' + oRotate + 'rad)';
-        // _self.dom.style["transform-origin"] = 'left top';
-    },
-
-    // 旋转结束
-    rotateEnd: function () {
-        if (!this.isRotate) return;
-        window.onmousemove = null;
-        window.onmouseup = null;
-        this.isRotate = false;
         var oCanvas = this.superClass.canvasObj[0];
         // 此层画板变为更新状态
         oCanvas.info.update = true;
