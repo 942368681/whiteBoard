@@ -25,9 +25,7 @@ Image.prototype = {
         });
 
         img.onload = function () {
-            if (_self.info.info.rotate) {
-                _self.dom.getElementsByTagName('img')[0].style.transform = _self.info.info.rotate;
-            }
+            if (_self.info.info.rotate) img.style.transform = _self.info.info.rotate;
         };
 
         var rotateIconDom = document.createElement('i');
@@ -120,6 +118,7 @@ Image.prototype = {
     // 旋转（顺时针一次90deg）
     rotateIt: function () {
         var oImg = this.dom.getElementsByTagName('img')[0];
+        oImg.style.transition = 'all .2s ease-in-out';
         var trans = this.dom.getElementsByTagName('img')[0].style.transform;
         if (!trans) {
             oImg.style.transform = 'rotate(90deg)';
