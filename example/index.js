@@ -232,7 +232,20 @@ window.oCanvas = window.WhiteBoard({
             }
         ],
         "other": {
-            img: [],
+            img: [
+                {
+                    type: "img",
+                    zIndex: 1,
+                    info: {
+                        width: "120px",
+                        height: "120px",
+                        left: "302px",
+                        top: "125px",
+                        rotate: "rotate(90deg)",
+                        url: "https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb"
+                    }
+                }
+            ],
             audio: [],
             video: [],
             N2: []

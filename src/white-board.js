@@ -114,7 +114,13 @@ if (!Date.now) {
 
             // 加纸按钮
             var addPageBtn = document.createElement('button');
-            addPageBtn.setAttribute('class', 'boardIcon board-icon-jia board-add-page');
+            var addBtnCLass = '';
+            if (this.options.zIndexInfo[0].page === this.options.maxPage) {
+                addBtnCLass = 'boardIcon board-icon-jia board-add-page disable';
+            } else {
+                addBtnCLass = 'boardIcon board-icon-jia board-add-page';
+            };
+            addPageBtn.setAttribute('class', addBtnCLass);
             this.wrapDom.appendChild(addPageBtn);
             var _self = this;
             addPageBtn.onclick = function () {
@@ -190,9 +196,6 @@ if (!Date.now) {
             if (this.options.zIndexInfo[0].page === this.options.maxPage) return;
             this.options.zIndexInfo[0].page += 1;
             this.initLayout();
-            if (this.options.zIndexInfo[0].page === this.options.maxPage) {
-                document.getElementsByClassName('board-add-page')[0].classList.add('disable');
-            };
             if (this.options.addCallBack && typeof this.options.addCallBack === 'function') this.options.addCallBack();
         },
 

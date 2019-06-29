@@ -114,19 +114,32 @@ var myboard = window.WhiteBoard({
             }
         ],
         "other": {
-            img: [],
-            audio: [],
-            video: [],
-            N2: []
+            "img": [
+                {
+                    "type": "img",
+                    "zIndex": 1,
+                    "info": {
+                        "width": "120px",
+                        "height": "120px",
+                        "left": "302px",
+                        "top": "125px",
+                        "rotate": "rotate(90deg)",
+                        "url": "https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb"
+                    }
+                }
+            ],
+            "audio": [],
+            "video": [],
+            "N2": []
         }
     }],
     "watcher": {
-        wait: 2000,
-        cb: () => console.log('异步执行回调')
+        "wait": 2000,
+        "cb": () => console.log('异步执行回调')
     },
     "writeCallBack": {
-        type: "once",
-        cb: () => console.log('同步执行回调')
+        "type": "once",
+        "cb": () => console.log('同步执行回调')
     },
     "addCallBack": () => console.log('加纸')
 });

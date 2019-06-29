@@ -7,23 +7,28 @@ export const Image = function (info, superClass) {
     this.dom = null;
     this.superClass = superClass;
     this.isScale = false;
-    this.isRotate = false;
     this.init();
 };
 
 Image.prototype = {
     // dom初始化
     init: function () {
+        var _self = this;
         this.dom = document.createElement('div');
         this.dom.setAttribute("class", "board-drag-img");
         this.dom.style.cssText = "left: " + this.info.info.left + "; top: " + this.info.info.top + "; z-index: " + this.zIndex + "; width:"+ this.info.info.width +"; height: "+ this.info.info.height +"";
-        if (this.info.info.rotate) this.dom.style.transform = this.info.info.rotate;
 
         var img = document.createElement('img');
         img.setAttribute('src', this.url);
         img.addEventListener('mousedown', function (ev) {
             ev.preventDefault();
         });
+
+        img.onload = function () {
+            if (_self.info.info.rotate) {
+                _self.dom.getElementsByTagName('img')[0].style.transform = _self.info.info.rotate;
+            }
+        };
 
         var rotateIconDom = document.createElement('i');
         rotateIconDom.setAttribute('class', 'boardIcon board-icon-yulanxuanzhuan board-rotate');
@@ -96,7 +101,6 @@ Image.prototype = {
             ev.preventDefault();
             ev.cancelBubble = true;
             ev.stopPropagation();
-            _self.isRotate = true;
             _self.rotateIt(ev);
 
         });
@@ -104,7 +108,6 @@ Image.prototype = {
             ev.preventDefault();
             ev.cancelBubble = true;
             ev.stopPropagation();
-            _self.isRotate = true;
             _self.rotateIt(ev);
         });
     },
@@ -116,14 +119,16 @@ Image.prototype = {
 
     // 旋转（顺时针一次90deg）
     rotateIt: function () {
-        var trans = this.dom.style.transform;
+        var oImg = this.dom.getElementsByTagName('img')[0];
+        var trans = this.dom.getElementsByTagName('img')[0].style.transform;
         if (!trans) {
-            this.dom.style.transform = 'rotate(90deg)';
+            oImg.style.transform = 'rotate(90deg)';
         } else {
             var prevDeg = Number(trans.match(/\((.+)\d/g)[0].substr(1));
             prevDeg += 90;
-            this.dom.style.transform = 'rotate('+ prevDeg +'deg)';
+            oImg.style.transform = 'rotate('+ prevDeg +'deg)';
         }
+
         var oCanvas = this.superClass.canvasObj[0];
         // 此层画板变为更新状态
         oCanvas.info.update = true;
@@ -193,8 +198,10 @@ Image.prototype = {
         var h = Math.max(120, pos.h + disY);
         w = w >= wrapDom.offsetWidth - _self.dom.offsetLeft - 20 ? wrapDom.offsetWidth - _self.dom.offsetLeft - 20 : w;
         h = h >= wrapDom.offsetHeight - _self.dom.offsetTop - 20 ? wrapDom.offsetHeight - _self.dom.offsetTop - 20 : h;
-        _self.dom.style.width = w + 'px';
-        _self.dom.style.height = h + 'px';
+        var x = Math.min(w, h);
+        _self.dom.style.width = x + 'px';
+        _self.dom.style.height = x + 'px';
+
     },
 
     // 缩放结束
@@ -263,7 +270,7 @@ Image.prototype = {
                 this.info.info.height = oStyle.height;
                 break;
             case 'rotate':
-                this.info.info.rotate = this.dom.style.transform;
+                this.info.info.rotate = this.dom.getElementsByTagName('img')[0].style.transform;
                 break;
             default:
                 break;
