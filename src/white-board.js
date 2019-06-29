@@ -271,9 +271,9 @@ if (!Date.now) {
             }
             oCanvas.info.other[type].push(info);
             oCanvas.el.parentNode.appendChild(dom);
-            // 此层画板变为更新状态
-            oCanvas.info.update = true;
-            oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
+            // 执行回调
+            oCanvas.cbFunc(true, 'async');
+            
             if (initDrag) new Drag(dom, oCanvas, info);
         },
 
@@ -288,9 +288,8 @@ if (!Date.now) {
             }
             oCanvas.el.parentNode.removeChild(dom);
             dom = null;
-            // 此层画板变为更新状态
-            oCanvas.info.update = true;
-            oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
+            // 执行回调
+            oCanvas.cbFunc(true, 'all');
         }
     };
 
@@ -382,25 +381,48 @@ if (!Date.now) {
                 _self.touchEnd.call(_self, e);
             });
 
+            // 绑定回调机制
+            this.bindCbFunc(this.el, this);
+
+            if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+        },
+        // 回调监听绑定方法
+        bindCbFunc: function (el, _self) {
             // 监听输入完毕，触发异步回调
             if (_self.watcher && _self.watcher.cb && typeof _self.watcher.cb === "function") {
-                this.el.addEventListener('touchend', _self.debounce(_self.watcher.cb, _self.watcher.wait));
-                this.el.addEventListener('mouseup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
+                el.addEventListener('touchend', _self.debounce(_self.watcher.cb, _self.watcher.wait));
+                el.addEventListener('mouseup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
             }
 
             // 监听输入开始，触发同步回调(兼容事件只执行一次)
             if (_self.writeCallBack && _self.writeCallBack.cb && typeof _self.writeCallBack.cb === "function") {
-                this.el.addEventListener('touchstart', function fn (e) {
+                el.addEventListener('touchstart', function fn (e) {
                     if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('touchstart', fn);
                     return _self.writeCallBack.cb();
                 });
-                this.el.addEventListener('mousedown', function fn (e) {
+                el.addEventListener('mousedown', function fn (e) {
                     if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('mousedown', fn);
                     return _self.writeCallBack.cb();
                 });
             }
-
-            if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+        },
+        // 回调方法执行
+        cbFunc: function (shouldUpdate, type) {
+            if (shouldUpdate) this.info.update = true;
+            switch (type) {
+                case 'async':
+                    this.debounce(this.watcher.cb, this.watcher.wait)();
+                    break;
+                case 'sync':
+                    this.writeCallBack.cb();
+                    break;
+                case 'all':
+                    this.debounce(this.watcher.cb, this.watcher.wait)();
+                    this.writeCallBack.cb();
+                    break;
+                default:
+                    break;
+            }
         },
         // 防抖
         debounce: function (func, wait) {
@@ -710,6 +732,9 @@ if (!Date.now) {
     }
     //按下
     Drag.prototype.down = function (_self) {
+        // 执行回调
+        _self.oCanvas.cbFunc(false, 'sync');
+
         _self.flag = true;
         var touch;
         if (event.touches) {
@@ -774,9 +799,10 @@ if (!Date.now) {
         window.onmousemove = null;
         window.onmouseup = null;
         _self.flag = false;
-        // 此层画板变为更新状态
-        _self.oCanvas.info.update = true;
-        _self.oCanvas.debounce(_self.oCanvas.watcher.cb, _self.oCanvas.watcher.wait)();
+
+        // 执行回调
+        _self.oCanvas.cbFunc(true, 'async');
+
         var oStyle = w.getComputedStyle(_self.dom);
         _self.info.info.left = oStyle.left;
         _self.info.info.top = oStyle.top;

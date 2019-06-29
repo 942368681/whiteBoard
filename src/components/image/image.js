@@ -65,49 +65,46 @@ Image.prototype = {
         var deleteBtn = this.dom.getElementsByClassName('board-delete')[0];
 
         // 绑定删除事件
-        deleteBtn.addEventListener('click', function (ev) {
-            ev.cancelBubble = true;
-            ev.stopPropagation();
+        deleteBtn.addEventListener('mousedown', function (ev) {
+            _self.cancelAll(ev);
             _self.deleteIt('img', _self.zIndex, _self.dom);
 
         });
-        deleteBtn.addEventListener('touchend', function (ev) {
-            ev.cancelBubble = true;
-            ev.stopPropagation();
+        deleteBtn.addEventListener('touchstart', function (ev) {
+            _self.cancelAll(ev);
             _self.deleteIt('img', _self.zIndex, _self.dom);
         });
 
         // 绑定缩放事件
         scaleBtn.addEventListener('mousedown', function (ev) {
-            ev.preventDefault();
-            ev.cancelBubble = true;
-            ev.stopPropagation();
+            _self.cancelAll(ev);
             _self.isScale = true;
             _self.scaleStart(ev);
 
         });
         scaleBtn.addEventListener('touchstart', function (ev) {
-            ev.preventDefault();
-            ev.cancelBubble = true;
-            ev.stopPropagation();
+            _self.cancelAll(ev);
             _self.isScale = true;
             _self.scaleStart(ev);
         });
 
         // 绑定旋转事件
-        rotateBtn.addEventListener('click', function (ev) {
-            ev.preventDefault();
-            ev.cancelBubble = true;
-            ev.stopPropagation();
+        rotateBtn.addEventListener('mousedown', function (ev) {
+            _self.cancelAll(ev);
             _self.rotateIt(ev);
 
         });
         rotateBtn.addEventListener('touchstart', function (ev) {
-            ev.preventDefault();
-            ev.cancelBubble = true;
-            ev.stopPropagation();
+            _self.cancelAll(ev);
             _self.rotateIt(ev);
         });
+    },
+
+    // 阻止冒泡，默认行为
+    cancelAll: function (ev) {
+        ev.preventDefault();
+        ev.cancelBubble = true;
+        ev.stopPropagation();
     },
 
     // 删除这个图片
@@ -128,16 +125,20 @@ Image.prototype = {
             oImg.style.transform = 'rotate('+ prevDeg +'deg)';
         }
 
+        // 执行回调
         var oCanvas = this.superClass.canvasObj[0];
-        // 此层画板变为更新状态
-        oCanvas.info.update = true;
-        oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
+        oCanvas.cbFunc(true, 'all');
+
         this.setDomInfo('rotate');
     },
 
     // 缩放开始
     scaleStart: function (e) {
         var _self = this;
+        // 执行回调
+        var oCanvas = _self.superClass.canvasObj[0];
+        oCanvas.cbFunc(false, 'sync');
+
         var coords = this.getPos(e);
         var pos = {
             'w': this.dom.getBoundingClientRect().width,
@@ -209,10 +210,11 @@ Image.prototype = {
         window.onmousemove = null;
         window.onmouseup = null;
         this.isScale = false;
+        
+        // 执行回调
         var oCanvas = this.superClass.canvasObj[0];
-        // 此层画板变为更新状态
-        oCanvas.info.update = true;
-        oCanvas.debounce(oCanvas.watcher.cb, oCanvas.watcher.wait)();
+        oCanvas.cbFunc(true, 'async');
+
         this.setDomInfo('scale');
     },
 
