@@ -745,10 +745,10 @@ if (!Date.now) {
         var offLeft = touch.clientX - _self.dom.offsetLeft; //当前点击点相对元素左边框的距离
         var offTop = touch.clientY - _self.dom.offsetTop; //当前点击点相对元素上边框的距离
 
-        window.onmousemove = function () {
+        w.onmousemove = function () {
             _self.move(_self, offLeft, offTop);
         }
-        window.onmouseup = function () {
+        w.onmouseup = function () {
             _self.end(_self);
         }
         w.addEventListener("touchmove", function () {
@@ -796,8 +796,8 @@ if (!Date.now) {
     //释放
     Drag.prototype.end = function (_self) {
         if (!_self.flag) return;
-        window.onmousemove = null;
-        window.onmouseup = null;
+        w.onmousemove = null;
+        w.onmouseup = null;
         _self.flag = false;
 
         // 执行回调
