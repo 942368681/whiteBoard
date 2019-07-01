@@ -362,7 +362,7 @@ if (!Date.now) {
                 _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
 
-            this.el.addEventListener('touchend', function (e) {
+            w.addEventListener('touchend', function (e) {
                 _self.info.update = true;
                 _self.touchEnd.call(_self, e);
             });
@@ -376,7 +376,7 @@ if (!Date.now) {
                 _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
             
-            this.el.addEventListener('mouseup', function (e) {
+            w.addEventListener('mouseup', function (e) {
                 _self.info.update = true;
                 _self.touchEnd.call(_self, e);
             });
@@ -411,14 +411,22 @@ if (!Date.now) {
             if (shouldUpdate) this.info.update = true;
             switch (type) {
                 case 'async':
-                    this.debounce(this.watcher.cb, this.watcher.wait)();
+                    if (this.watcher && this.watcher.cb && typeof this.watcher.cb === "function") {
+                        this.debounce(this.watcher.cb, this.watcher.wait)();
+                    }
                     break;
                 case 'sync':
-                    this.writeCallBack.cb();
+                    if (this.writeCallBack && this.writeCallBack.cb && typeof this.writeCallBack.cb === "function") {
+                        this.writeCallBack.cb();
+                    }
                     break;
                 case 'all':
-                    this.debounce(this.watcher.cb, this.watcher.wait)();
-                    this.writeCallBack.cb();
+                    if (this.watcher && this.watcher.cb && typeof this.watcher.cb === "function") {
+                        this.debounce(this.watcher.cb, this.watcher.wait)();
+                    }
+                    if (this.writeCallBack && this.writeCallBack.cb && typeof this.writeCallBack.cb === "function") {
+                        this.writeCallBack.cb();
+                    }
                     break;
                 default:
                     break;
