@@ -113,19 +113,7 @@ if (!Date.now) {
             }
 
             // 加纸按钮
-            var addPageBtn = document.createElement('button');
-            var addBtnCLass = '';
-            if (this.options.zIndexInfo[0].page === this.options.maxPage) {
-                addBtnCLass = 'boardIcon board-icon-jia board-add-page disable';
-            } else {
-                addBtnCLass = 'boardIcon board-icon-jia board-add-page';
-            };
-            addPageBtn.setAttribute('class', addBtnCLass);
-            this.wrapDom.appendChild(addPageBtn);
-            var _self = this;
-            addPageBtn.onclick = function () {
-                _self.addPage();
-            }; 
+            if (this.options.addBtn !== false) this.initAddBtn();
 
             // 测试多媒体控件dom接入
             /* var testBtn = document.createElement('button');
@@ -161,13 +149,47 @@ if (!Date.now) {
                 // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
                 _self.canvasObj[0].setUp({ inputType: 'rubber'});
             }; */
+
+            // 测试禁用
+            /* var testBtn = document.createElement('button');
+            testBtn.innerText = "disable";
+            testBtn.style.position = 'absolute';
+            testBtn.style.zIndex = 999;
+            this.wrapDom.appendChild(testBtn);
+            var _self = this;
+            testBtn.onclick = function () {
+                _self.disableBoard(true);
+            }; */
+        },
+
+        initAddBtn: function () {
+            var addPageBtn = d.createElement('button');
+            var addBtnCLass = '';
+            if (this.options.zIndexInfo[0].page === this.options.maxPage) {
+                addBtnCLass = 'boardIcon board-icon-jia board-add-page disable';
+            } else {
+                addBtnCLass = 'boardIcon board-icon-jia board-add-page';
+            };
+            addPageBtn.setAttribute('class', addBtnCLass);
+            this.wrapDom.appendChild(addPageBtn);
+            var _self = this;
+            addPageBtn.onclick = function (ev) {
+                ev.preventDefault();
+                ev.cancelBubble = true;
+                ev.stopPropagation();
+                _self.addPage();
+            }; 
         },
 
         clearWrapDom: function (wrapDom) {
-            while (wrapDom.children.length) {
-                var oDom = wrapDom.firstElementChild;
-                wrapDom.removeChild(oDom);
-                oDom = null;
+            for (var i = 0, len = wrapDom.children.length; i < len; i++) {
+                var oDom = wrapDom.children[i];
+                if (oDom.classList.contains('board-box') || oDom.classList.contains('board-add-page')) {
+                    wrapDom.removeChild(oDom);
+                    oDom = null;
+                    i--;
+                    len = wrapDom.children.length;
+                }
             }
             this.canvasObj = [];
         },
@@ -197,6 +219,12 @@ if (!Date.now) {
             this.options.zIndexInfo[0].page += 1;
             this.initLayout();
             if (this.options.addCallBack && typeof this.options.addCallBack === 'function') this.options.addCallBack();
+        },
+
+        // 禁用画板
+        disableBoard: function (bool) {
+            this.options.zIndexInfo[0].disabled = bool;
+            this.initLayout();
         },
 
         // 获取随机位置
@@ -497,7 +525,9 @@ if (!Date.now) {
             }
             // this.info.content.push(this.locus);
             if (this.canvasSettings.inputType !== 'rubber') {
+                if (!this.curve) return;
                 this.info.content.push(this.curve);
+                this.curve = null;
             }
             // console.log(this.info.content);
         },
@@ -535,7 +565,7 @@ if (!Date.now) {
                 return;
             };
             for (var i = 0, len = this.info.content.length; i < len; i++) {
-                if (!this.info.content[i]) break;
+                if (!this.info.content[i]) continue;
                 var matchResult = this.matchPath(coords, this.info.content[i].path);
                 if (matchResult) {
                     this.info.content.splice(i, 1);
