@@ -51,7 +51,7 @@ if (!Date.now) {
         // 父级容器dom
         this.wrapDom = this.getWrapDom(o.el);
         // 一张纸的默认高度
-        this.pageHeight = this.wrapDom.getBoundingClientRect().height;
+        this.pageHeight = o.pageHeight || this.wrapDom.getBoundingClientRect().height;
         // 总层级(画板层级数和多媒体控件数的总和)
         this.zIndexTotal = this.getAllZindex(o.zIndexInfo),
         // 画板各层级cavas对象实例

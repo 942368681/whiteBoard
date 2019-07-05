@@ -2,6 +2,7 @@ import '../src/white-board';
 window.oCanvas = window.WhiteBoard({
     "el": ".box",
     "maxPage": 5,
+    // "pageHeight": 100,
     "addBtn": true,
     "zIndexInfo": [{
         "inputType": "fountain-pen", // rubber, fountain-pen, fluorescent-pen
