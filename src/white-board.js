@@ -5,7 +5,6 @@ import { Image } from './components/image/image';
 import { Audio } from './components/audio/audio';
 import { N2SVG } from './components/n2svg/n2svg';
 
-
 if (!Date.now) {
     Date.now = function () {
         return new Date().getTime();
@@ -530,6 +529,7 @@ if (!Date.now) {
                 this.curve = null;
             }
             // console.log(this.info.content);
+            // console.log(JSON.stringify(this.info.content));
         },
 
         drawing: function () {
@@ -670,10 +670,6 @@ if (!Date.now) {
 
             if (!this.info.content.length) return;
 
-            var content = this.info.content.filter(function (e) {
-                return e;
-            });
-
             /* for (var i = 0, len = this.info.content.length; i < len; i++) {
                 var arr = this.info.content[i].path.split('M')[1].split('L');
                 for (var j = 0, length = arr.length; j < length; j++) {
@@ -691,10 +687,14 @@ if (!Date.now) {
                 }
             } */
 
+            var content = this.info.content;
+            
             for (var i = 0, len = content.length; i < len; i++) {
                 var oPathInfo = content[i];
+                if (!oPathInfo || !oPathInfo.path.length) continue;
                 var arr = oPathInfo.path;
                 this.setUp(oPathInfo.canvasSettings);
+                this.ctx.beginPath();
                 for (var j = 0, length = arr.length; j < length; j++) {
                     var currentMidX = arr[j].currentMidX;
                     var currentMidY = arr[j].currentMidY;
@@ -702,11 +702,10 @@ if (!Date.now) {
                     var oldY = arr[j].oldY;
                     var oldMidX = arr[j].oldMidX;
                     var oldMidY = arr[j].oldMidY;
-                    this.ctx.beginPath();
                     this.ctx.moveTo(currentMidX, currentMidY);
                     this.ctx.quadraticCurveTo(oldX, oldY, oldMidX, oldMidY);
-                    this.ctx.stroke();
                 }
+                this.ctx.stroke();
             }
 
             // 恢复上一次的设置
@@ -736,8 +735,10 @@ if (!Date.now) {
         // 清除画布的所有内容
         clearAll: function () {
             var canvas = this.el;
-            var context = canvas.getContext("2d");
-            context.clearRect(0, 0, canvas.width, canvas.height);
+            /* var context = canvas.getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height); */
+
+            canvas.width = canvas.width;
         }
     };
     /*************************************************************************/
