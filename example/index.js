@@ -3,6 +3,7 @@ window.oCanvas = window.WhiteBoard({
     "el": ".box",
     "maxPage": 5,
     // "pageHeight": 100,
+    "rubberRange": 10,
     "addBtn": true,
     "zIndexInfo": [{
         "inputType": "fountain-pen", // rubber, fountain-pen, fluorescent-pen
@@ -15,7 +16,7 @@ window.oCanvas = window.WhiteBoard({
         "content": [],
         "other": {
             img: [
-                {
+                /* {
                     type: "img",
                     zIndex: 1,
                     info: {
@@ -26,7 +27,7 @@ window.oCanvas = window.WhiteBoard({
                         rotate: "rotate(90deg)",
                         url: "https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb"
                     }
-                }
+                } */
             ],
             audio: [],
             video: [],

@@ -336,7 +336,7 @@ if (!Date.now) {
             lineCap: '',
             inputType: ''
         };
-        this.rubberRange = 5;
+        this.squareOfRubberRange = (superClass.options.rubberRange*superClass.options.rubberRange) || 25;
         this.watcher = superClass.options.watcher;
         this.writeCallBack = superClass.options.writeCallBack;
         this.isDrawing = false;
@@ -569,20 +569,17 @@ if (!Date.now) {
                 var matchResult = this.matchPath(coords, this.info.content[i].path);
                 if (matchResult) {
                     this.info.content.splice(i, 1);
-                    i = i - 1;
+                    this.drawingContent(Object.assign({}, this.canvasSettings));
+                    return;
                 };
             }
-            this.drawingContent(Object.assign({}, this.canvasSettings));
         },
-        // 根据点击坐标匹配选中的一条轨迹
+        // 根据坐标点匹配选中的一条轨迹
         matchPath: function (coords, pathArr) {
             var _self = this;
-            var pointArr = pathArr.map(function (e) {
-                return [e.currentMidX, e.currentMidY, e.oldMidX, e.oldMidY];
-            });
 
-            var bool = pointArr.some(function (e) {
-                return _self.distanceOfPoint2Line(coords.x, coords.y, e[0], e[1], e[2], e[3]) <= (_self.rubberRange*_self.rubberRange);
+            var bool = pathArr.some(function (e) {
+                return _self.distanceOfPoint2Line(coords.x, coords.y, e.currentMidX, e.currentMidY, e.oldMidX, e.oldMidY) <= _self.squareOfRubberRange;
             });
 
             return bool;
