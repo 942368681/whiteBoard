@@ -533,28 +533,26 @@ if (!Date.now) {
         },
 
         drawing: function () {
-            if (this.isDrawing) {
+            if (this.isDrawing && this.canvasSettings.inputType !== 'rubber') {
                 var currentMid = this.getMidInputCoords(this.coords.current);
                 
-                if (this.canvasSettings.inputType !== 'rubber') {
-                    this.ctx.beginPath();
-                    this.ctx.moveTo(currentMid.x, currentMid.y);
-                    this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
-                    this.ctx.stroke();
-                    const currentCoords = this.getCurrentCoords(this.coords);
-                    // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
-                    this.curve.path.push({
-                        currentMidX: currentMid.x,
-                        currentMidY: currentMid.y,
-                        oldX: currentCoords.old.x,
-                        oldY: currentCoords.old.y,
-                        oldMidX: currentCoords.oldMid.x,
-                        oldMidY: currentCoords.oldMid.y
-                    });
-                    
-                    this.coords.old = this.coords.current;
-                    this.coords.oldMid = currentMid;
-                }
+                this.ctx.beginPath();
+                this.ctx.moveTo(currentMid.x, currentMid.y);
+                this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
+                this.ctx.stroke();
+                const currentCoords = this.getCurrentCoords(this.coords);
+                // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
+                this.curve.path.push({
+                    currentMidX: currentMid.x,
+                    currentMidY: currentMid.y,
+                    oldX: currentCoords.old.x,
+                    oldY: currentCoords.old.y,
+                    oldMidX: currentCoords.oldMid.x,
+                    oldMidY: currentCoords.oldMid.y
+                });
+                
+                this.coords.old = this.coords.current;
+                this.coords.oldMid = currentMid;
             }
             if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
@@ -617,7 +615,9 @@ if (!Date.now) {
             var
                 rect = this.el.getBoundingClientRect(),
                 width = this.el.width,
-                height = this.el.height
+                height = this.el.height,
+                left = rect.left,
+                top = rect.top
             ;
             var x, y;
             if (e.touches && e.touches.length == 1) {
@@ -627,8 +627,8 @@ if (!Date.now) {
                 x = e.pageX;
                 y = e.pageY;
             }
-            x = x - this.el.getBoundingClientRect().left;
-            y = y - this.el.getBoundingClientRect().top;
+            x = x - left;
+            y = y - top;
             x *= (width / rect.width);
             y *= (height / rect.height);
             return {
