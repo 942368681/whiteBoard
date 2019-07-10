@@ -1,3 +1,6 @@
+/**
+ * version: 2.3.7
+ */
 import './white-board.css';
 import '../lib/font/font';
 import '../lib/icon/iconfont.css';
@@ -147,6 +150,17 @@ if (!Date.now) {
             testBtn.onclick = function () {
                 // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
                 _self.canvasObj[0].setUp({ inputType: 'rubber'});
+            };
+            var testBtn = document.createElement('button');
+            testBtn.innerText = "画笔";
+            testBtn.style.position = 'absolute';
+            testBtn.style.left=100+'px';
+            testBtn.style.zIndex = 999;
+            this.wrapDom.appendChild(testBtn);
+            var _self = this;
+            testBtn.onclick = function () {
+                // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
+                _self.canvasObj[0].setUp({ inputType: 'fountain-pen', strokeStyle: '#FF9500' });
             }; */
 
             // 测试禁用
@@ -335,7 +349,8 @@ if (!Date.now) {
             lineCap: '',
             inputType: ''
         };
-        this.squareOfRubberRange = (superClass.options.rubberRange*superClass.options.rubberRange) || 25;
+        this.rubberRange = Number(superClass.options.rubberRange) || 10;
+        this.squareOfRubberRange = this.rubberRange*this.rubberRange;
         this.watcher = superClass.options.watcher;
         this.writeCallBack = superClass.options.writeCallBack;
         this.isDrawing = false;
@@ -481,7 +496,8 @@ if (!Date.now) {
             // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
             this.curve = {
                 path: [],
-                canvasSettings: Object.assign({}, this.canvasSettings)
+                canvasSettings: Object.assign({}, this.canvasSettings),
+                rectArea: []
             };
 
             if (!w.requestAnimationFrame) this.drawing();
@@ -504,7 +520,7 @@ if (!Date.now) {
                     x: coords.x,
                     y: coords.y
                 };
-                this.removeOnePath(pos);
+                this.checkRectArea(pos);
             }
 
             // this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
@@ -525,6 +541,7 @@ if (!Date.now) {
             // this.info.content.push(this.locus);
             if (this.canvasSettings.inputType !== 'rubber') {
                 if (!this.curve) return;
+                this.curve.rectArea = this.getRectArea(this.curve.path);
                 this.info.content.push(this.curve);
                 this.curve = null;
             }
@@ -557,21 +574,78 @@ if (!Date.now) {
             if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
 
-        // 去除一条匹配的轨迹
-        removeOnePath: function (coords) {
+        // 计算轨迹矩形区域
+        getRectArea: function (pathArr) {
+            var dis = this.rubberRange*2;
+            var o = {xMin: Infinity, xMax: -Infinity, yMin: Infinity, yMax: -Infinity};
+            var obj = pathArr.reduce(function (prev, cur) {
+                prev.xMin = Math.min.apply(null, [prev.xMin, cur.currentMidX, cur.oldX, cur.oldMidX]);
+                prev.xMax = Math.max.apply(null, [prev.xMax, cur.currentMidX, cur.oldX, cur.oldMidX]);
+                prev.yMin = Math.min.apply(null, [prev.yMin, cur.currentMidY, cur.oldY, cur.oldMidY]);
+                prev.yMax = Math.max.apply(null, [prev.yMax, cur.currentMidY, cur.oldY, cur.oldMidY]);
+                return prev;
+            }, o);
+            return [
+                obj.xMin - dis <= 0 ? 0 : obj.xMin - dis, 
+                obj.xMax + dis >= this.el.width ? this.el.width : obj.xMax + dis, 
+                obj.yMin - dis <= 0 ? 0 : obj.yMin - dis, 
+                obj.yMax + dis >= this.el.height ? this.el.height : obj.yMax + dis
+            ];
+        },
+
+        // 检测触发区域
+        checkRectArea: function (coords) {
             if (!this.info.content.length) {
                 return;
             };
             for (var i = 0, len = this.info.content.length; i < len; i++) {
-                if (!this.info.content[i]) continue;
-                var matchResult = this.matchPath(coords, this.info.content[i].path);
-                if (matchResult) {
-                    this.info.content.splice(i, 1);
-                    this.drawingContent(Object.assign({}, this.canvasSettings));
-                    return;
-                };
+                var oContent = this.info.content[i];
+                if (!oContent) continue;
+                if (this.isFitPath(coords, oContent.rectArea)) {
+                    if (this.matchPath(coords, oContent.path)) {
+                        this.info.content.splice(i, 1);
+                        this.patchDrawing(oContent);
+                        return;
+                    }
+                }
             }
         },
+        patchDrawing: function (oContent) {
+
+            var canvas = this.el;
+            var context = canvas.getContext("2d");
+            var x = oContent.rectArea[0];
+            var y = oContent.rectArea[2];
+            var disX = oContent.rectArea[1] - x;
+            var disY = oContent.rectArea[3] - y;
+            context.clearRect(x, y, disX, disY);
+
+            this.ctx.save();
+            context.beginPath();
+            context.rect(x, y, disX, disY);
+            this.ctx.clip();
+            this.drawingContent(Object.assign({}, this.canvasSettings), 'patch');
+            this.ctx.restore();
+        },
+
+        // 检测点在某条轨迹区域内
+        isFitPath: function (coords, rectArea) {
+            if (coords.x <= rectArea[0]) {
+                return false;
+            }
+            if (coords.y >= rectArea[3]) {
+                return false;
+            }
+            if (coords.x >= rectArea[1]) {
+                return false;
+            }
+            if (coords.y <= rectArea[2]) {
+                return false;
+            }
+    
+            return true;
+        },
+
         // 根据坐标点匹配选中的一条轨迹
         matchPath: function (coords, pathArr) {
             var _self = this;
@@ -665,10 +739,12 @@ if (!Date.now) {
             });
         },
         // 初始化白板内容
-        drawingContent: function (canvasSettings) {
-            this.clearAll();
-
-            if (!this.info.content.length) return;
+        drawingContent: function (canvasSettings, type) {
+            if (type !== 'patch') this.clearAll();
+            if (!this.info.content.length) {
+                this.setUp(canvasSettings);
+                return;
+            }
 
             /* for (var i = 0, len = this.info.content.length; i < len; i++) {
                 var arr = this.info.content[i].path.split('M')[1].split('L');
