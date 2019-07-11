@@ -121,6 +121,7 @@ if (!Date.now) {
             /* var testBtn = document.createElement('button');
             testBtn.innerText = "img";
             testBtn.style.position = 'absolute';
+            testBtn.style.left=200+'px';
             testBtn.style.zIndex = 999;
             this.wrapDom.appendChild(testBtn);
             var _self = this;
@@ -349,6 +350,9 @@ if (!Date.now) {
             lineCap: '',
             inputType: ''
         };
+        this.rubberStartX = 0;
+        this.rubberStartY = 0;
+        this.rubberOn = false;
         this.rubberRange = Number(superClass.options.rubberRange) || 10;
         this.squareOfRubberRange = this.rubberRange*this.rubberRange;
         this.watcher = superClass.options.watcher;
@@ -394,27 +398,26 @@ if (!Date.now) {
         // 画板事件绑定
         initDrawEvent: function () {
             var _self = this;
-            
             // touch事件
             this.el.addEventListener('touchstart', function (e) {
                 _self.touchStart.call(_self, e, _self.getInputCoords(e));
-            });
+            }, { passive: false });
 
-            this.el.addEventListener('touchmove', function (e) {
+            w.addEventListener('touchmove', function (e) {
                 _self.touchMove.call(_self, e, _self.getInputCoords(e));
-            });
+            }, { passive: false });
 
             w.addEventListener('touchend', function (e) {
                 _self.info.update = true;
                 _self.touchEnd.call(_self, e);
-            });
+            }, { passive: false });
 
             // mouse事件
             this.el.addEventListener('mousedown', function (e) {
                 _self.touchStart.call(_self, e, _self.getInputCoords(e));
             });
             
-            this.el.addEventListener('mousemove', function (e) {
+            w.addEventListener('mousemove', function (e) {
                 _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
             
@@ -482,6 +485,19 @@ if (!Date.now) {
                 _self.timeout = setTimeout(func, wait);
             }
         },
+        // 阻止默认事件，事件冒泡
+        clearEventBubble: function (e) {
+            if (e.stopPropagation) {
+                e.stopPropagation();
+            } else {
+                e.cancelBubble = true;
+            }
+            if (e.preventDefault) {
+                e.preventDefault();
+            } else {
+                e.returnValue = false;
+            }
+        },
         // 触摸事件开始
         touchStart: function (e, coords) {
             if (e.touches && e.touches.length > 1) {
@@ -490,20 +506,24 @@ if (!Date.now) {
             };
 
             this.isDrawing = true;
-            this.coords.current = this.coords.old = coords;
-            this.coords.oldMid = this.getMidInputCoords(coords);
-            
-            // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
-            this.curve = {
-                path: [],
-                canvasSettings: Object.assign({}, this.canvasSettings),
-                rectArea: []
-            };
 
-            if (!w.requestAnimationFrame) this.drawing();
+            if (this.canvasSettings.inputType === 'rubber') {
+                this.rubberStart(e, coords);
+            } else {
+                this.coords.current = this.coords.old = coords;
+                this.coords.oldMid = this.getMidInputCoords(coords);
+                
+                // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
+                this.curve = {
+                    path: [],
+                    canvasSettings: Object.assign({}, this.canvasSettings),
+                    rectArea: []
+                };
     
-            e.stopPropagation();
-            e.preventDefault();
+                if (!w.requestAnimationFrame) this.drawing();
+                this.clearEventBubble(e);
+            }
+    
         },
         // 触摸移动
         touchMove: function (e, coords) {
@@ -516,30 +536,31 @@ if (!Date.now) {
             this.coords.current = coords;
 
             if (this.canvasSettings.inputType === 'rubber') {
-                var pos = {
+                /* var pos = {
                     x: coords.x,
                     y: coords.y
                 };
-                this.checkRectArea(pos);
+                this.checkRectArea(pos); */
+                this.rubberMove(e, coords);
+            } else {
+                // this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
+                // this.curve.path.push([this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y]);
+                if (!w.requestAnimationFrame) this.drawing();
+                this.clearEventBubble(e);
             }
 
-            // this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
-            // this.curve.path.push([this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y]);
-    
-            if (!w.requestAnimationFrame) this.drawing();
-
-            e.stopPropagation();
-            e.preventDefault();
         },
         // 触摸结束
         touchEnd: function (e) {
             if (this.isDrawing && (!e.touches || e.touches.length === 0)) {
                 this.isDrawing = false;
-                e.stopPropagation();
-                e.preventDefault();
+                this.clearEventBubble(e);
             }
             // this.info.content.push(this.locus);
-            if (this.canvasSettings.inputType !== 'rubber') {
+            if (this.canvasSettings.inputType === 'rubber') {
+                this.rubberUp(e);
+                this.cbFunc(false, 'async');
+            } else {
                 if (!this.curve) return;
                 this.curve.rectArea = this.getRectArea(this.curve.path);
                 this.info.content.push(this.curve);
@@ -574,9 +595,131 @@ if (!Date.now) {
             if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
 
+        // 橡皮区域拖拽开始
+        rubberStart: function (e, coords) {
+            this.cbFunc(false, 'sync');
+            this.clearEventBubble(e);
+            this.rubberOn = true;
+            this.rubberStartX = coords.x;
+            this.rubberStartY = coords.y;
+            var selDiv = document.createElement('div');
+            selDiv.id = 'board-rubber-area';
+            this.el.parentNode.appendChild(selDiv);
+            selDiv.style.left = this.rubberStartX + 'px';
+            selDiv.style.top = this.rubberStartY + 'px';
+        },
+
+        // 橡皮区域拖拽中
+        rubberMove: function (e, coords) {
+            if (!this.rubberOn) return;
+            this.clearEventBubble(e);
+            var _x = coords.x;
+            var _y = coords.y;
+            var selDiv = document.getElementById('board-rubber-area');
+            selDiv.style.display = 'block';
+            selDiv.style.left = Math.min(_x, this.rubberStartX) + 'px';
+            selDiv.style.top = Math.min(_y, this.rubberStartY) + 'px';
+            selDiv.style.width = Math.abs(_x - this.rubberStartX) + 'px';
+            selDiv.style.height = Math.abs(_y - this.rubberStartY) + 'px';
+        },
+
+        // 橡皮区域抬起
+        rubberUp: function (e) {
+            if (!this.rubberOn) return;
+            this.clearEventBubble(e);
+            var selDiv = document.getElementById('board-rubber-area');
+            // 获取参数
+            var l = selDiv.offsetLeft;
+            var t = selDiv.offsetTop;
+            var w = selDiv.offsetWidth;
+            var h = selDiv.offsetHeight;
+            
+            this.checkInnerWriting({x: l, y: t, width: w, height: h});
+
+            this.el.parentNode.removeChild(selDiv);
+            selDiv = null;
+            this.rubberOn = false;
+        },
+
+        // 判断区域内部的轨迹
+        checkInnerWriting: function (rect1) {
+            if (!this.info.content.length) return;
+            for (var i = 0, len = this.info.content.length; i < len; i++) {
+                var oContent = this.info.content[i];
+                if (!oContent) continue;
+                var rect2 = {
+                    x: oContent.rectArea[0],
+                    y: oContent.rectArea[2],
+                    width: oContent.rectArea[1] - oContent.rectArea[0],
+                    height: oContent.rectArea[3] - oContent.rectArea[2]
+                }
+                var bool = this.isOverlap(rect1, rect2);
+                if (bool) {
+                    if (this.shouldDelete(oContent, rect1)) {
+                        this.info.content.splice(i, 1);
+                        i = i - 1;
+                    }
+                }
+            }
+            this.drawingContent(Object.assign({}, this.canvasSettings));
+        },
+
+        /**
+         * 判断两个矩形是否有重叠
+         * @param {x, y, width, height} rect1 
+         * @param {x, y, width, height} rect2 
+         */
+        isOverlap: function (rect1, rect2) {
+            var l1 = { x: rect1.x, y: rect1.y };
+            var r1 = { x: rect1.x + rect1.width, y: rect1.y + rect1.height };
+            var l2 = { x: rect2.x, y: rect2.y };
+            var r2 = { x: rect2.x + rect2.width, y: rect2.y + rect2.height };
+            if (
+              l1.x > r2.x ||
+              l2.x > r1.x ||
+              l1.y > r2.y ||
+              l2.y > r1.y
+            ) return false;
+            return true;
+        },
+
+        /**
+         * 判断是否这个轨迹得某个点在矩形范围内
+         * @param {canvasSettings, path, rectArea} oContent 
+         * @param {x, y, width, height} rect 
+         */
+        shouldDelete: function (oContent, rect) {
+            var rectArea = [
+                rect.x,
+                rect.x + rect.width,
+                rect.y,
+                rect.y + rect.height
+            ];
+            var pathArr = oContent.path;
+            for (var i = 0, len = pathArr.length; i < len; i++) {
+                var oPoint = pathArr[i];
+                var coords1 = {
+                    x: oPoint.currentMidX,
+                    y: oPoint.currentMidY
+                };
+                var coords2 = {
+                    x: oPoint.oldX,
+                    y: oPoint.oldY
+                };
+                var coords3 = {
+                    x: oPoint.oldMidX,
+                    y: oPoint.oldMidY
+                };
+                if (this.isFitPath(coords1, rectArea) || this.isFitPath(coords2, rectArea) || this.isFitPath(coords3, rectArea)) {
+                    return true;
+                }
+            }
+            return false;
+        },
+
         // 计算轨迹矩形区域
         getRectArea: function (pathArr) {
-            var dis = this.rubberRange*2;
+            var dis = this.rubberRange;
             var o = {xMin: Infinity, xMax: -Infinity, yMin: Infinity, yMax: -Infinity};
             var obj = pathArr.reduce(function (prev, cur) {
                 prev.xMin = Math.min.apply(null, [prev.xMin, cur.currentMidX, cur.oldX, cur.oldMidX]);
@@ -628,7 +771,11 @@ if (!Date.now) {
             this.ctx.restore();
         },
 
-        // 检测点在某条轨迹区域内
+        /**
+         * 检测点在矩形区域内
+         * @param {x, y} coords 
+         * @param {xMin, xMax, yMin, yMax} rectArea 
+         */
         isFitPath: function (coords, rectArea) {
             if (coords.x <= rectArea[0]) {
                 return false;
