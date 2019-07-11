@@ -1,5 +1,5 @@
 /**
- * version: 2.3.7
+ * version: 2.3.9
  */
 import './white-board.css';
 import '../lib/font/font';
@@ -559,7 +559,6 @@ if (!Date.now) {
             // this.info.content.push(this.locus);
             if (this.canvasSettings.inputType === 'rubber') {
                 this.rubberUp(e);
-                this.cbFunc(false, 'async');
             } else {
                 if (!this.curve) return;
                 this.curve.rectArea = this.getRectArea(this.curve.path);
@@ -626,6 +625,7 @@ if (!Date.now) {
         // 橡皮区域抬起
         rubberUp: function (e) {
             if (!this.rubberOn) return;
+            this.cbFunc(false, 'async');
             this.clearEventBubble(e);
             var selDiv = document.getElementById('board-rubber-area');
             // 获取参数
