@@ -33,7 +33,8 @@ window.oCanvas = window.WhiteBoard({
             ],
             audio: [],
             video: [],
-            N2: []
+            N2: [],
+            innerImgData: []
         }
     }],
     "watcher": {

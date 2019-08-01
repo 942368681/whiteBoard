@@ -1,5 +1,5 @@
 /**
- * version: 2.3.9
+ * version: 2.5.3
  */
 import './white-board.css';
 import '../lib/font/font';
@@ -364,7 +364,7 @@ if (!Date.now) {
         this.curve = null;
         this.setUp(this.initSettings(obj));
         this.drawingContent(Object.assign({}, this.canvasSettings));
-        this.initMediaComps(obj.other);
+        this.initInnerComps(obj.other);
         if (!obj.disabled) {
             this.initDrawEvent();
         }
@@ -865,6 +865,31 @@ if (!Date.now) {
             };
         },
 
+        /**
+         * 绘制图片
+         * @param {url, x, y} imgInfo 
+         */
+        drawImg: function (imgInfo) {
+            if (this.info.other.innerImgData) {
+                this.info.other.innerImgData.push(imgInfo);
+            } else {
+                this.info.other.innerImgData = [imgInfo];
+            }
+            this.doDrawImg(this.info.other.innerImgData);
+        },
+
+        doDrawImg (data) {
+            var oldGlobalCompositeOperation = this.ctx.globalCompositeOperation;
+            this.ctx.globalCompositeOperation = "destination-over";
+
+            for (var i = 0, len = data.length; i < len; i++) {
+                var imgInfo = data[i];
+                this.ctx.drawImage(imgInfo.img, imgInfo.x, imgInfo.y);
+            }
+
+            this.ctx.globalCompositeOperation = oldGlobalCompositeOperation;
+        },
+
         // 保存图片(base64)
         saveToBase64: function () {
             var image = new Image();
@@ -935,7 +960,7 @@ if (!Date.now) {
             this.setUp(canvasSettings);
         },
         // 初始化其他内容（多媒体控件）
-        initMediaComps: function (o) {
+        initInnerComps: function (o) {
             for (var key in o) {
                 if (o[key].length) this.drawComps(o[key], key);
             }
@@ -950,7 +975,9 @@ if (!Date.now) {
                         this.el.parentNode.appendChild(dom);
                     }
                     break;
-            
+                case 'innerImgData':
+                    this.doDrawImg(data);
+                    break;
                 default:
                     break;
             }
