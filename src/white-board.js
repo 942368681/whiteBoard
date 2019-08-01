@@ -1,5 +1,5 @@
 /**
- * version: 2.5.3
+ * version: 2.5.6
  */
 import './white-board.css';
 import '../lib/font/font';
@@ -52,6 +52,8 @@ if (!Date.now) {
         this.options = o;
         // 父级容器dom
         this.wrapDom = this.getWrapDom(o.el);
+        // 初始高度
+        this.initHeight = this.wrapDom.getBoundingClientRect().height;
         // 一张纸的默认高度
         this.pageHeight = o.pageHeight || this.wrapDom.getBoundingClientRect().height;
         // 总层级(画板层级数和多媒体控件数的总和)
@@ -103,7 +105,7 @@ if (!Date.now) {
         initLayout: function () {
             var maxPage = Math.max.apply(Math, this.options.zIndexInfo.map(function(e) { return (e.page || 1) }));
             console.log('最大页数: ' + maxPage);
-            this.wrapDom.style.height = maxPage*this.pageHeight + 'px';
+            this.wrapDom.style.height = this.initHeight + ((maxPage - 1)*this.pageHeight) + 'px';
             this.wrapDom.style.position = 'relative';
 
             // 清理dom和已挂载到canvasObj的canvas实例和其他元素
@@ -212,7 +214,7 @@ if (!Date.now) {
         createCanvas: function (obj) {
             var parentEl = d.createElement('div');
             parentEl.setAttribute('class', 'board-box board-box-' + obj.zIndex);
-            parentEl.style.height = (obj.page || 1)*this.pageHeight + 'px';
+            parentEl.style.height = this.wrapDom.getBoundingClientRect().height + 'px';
             parentEl.style.zIndex = obj.zIndex;
             this.wrapDom.appendChild(parentEl);
 
