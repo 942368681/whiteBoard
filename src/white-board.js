@@ -1,5 +1,5 @@
 /**
- * version: 2.5.6
+ * version: 2.5.8
  */
 import './white-board.css';
 import '../lib/font/font';
@@ -886,7 +886,7 @@ if (!Date.now) {
 
             for (var i = 0, len = data.length; i < len; i++) {
                 var imgInfo = data[i];
-                this.ctx.drawImage(imgInfo.img, imgInfo.x, imgInfo.y);
+                this.ctx.drawImage(imgInfo.img, imgInfo.x, imgInfo.y, imgInfo.w, imgInfo.h);
             }
 
             this.ctx.globalCompositeOperation = oldGlobalCompositeOperation;
