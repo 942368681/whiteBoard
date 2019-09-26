@@ -1,6 +1,10 @@
 /**
- * version: 2.5.8
+ *  @brief     白板组件
+ *  @author    sfl
+ *  @version   2.5.9
+ *  @date      2019.4
  */
+
 import './white-board.css';
 import '../lib/font/font';
 import '../lib/icon/iconfont.css';
@@ -507,8 +511,6 @@ if (!Date.now) {
                 return;
             };
 
-            this.isDrawing = true;
-
             if (this.canvasSettings.inputType === 'rubber') {
                 this.rubberStart(e, coords);
             } else {
@@ -525,7 +527,8 @@ if (!Date.now) {
                 if (!w.requestAnimationFrame) this.drawing();
                 this.clearEventBubble(e);
             }
-    
+
+            this.isDrawing = true;
         },
         // 触摸移动
         touchMove: function (e, coords) {
