@@ -1,7 +1,7 @@
 /**
  *  @brief     白板组件
  *  @author    sfl
- *  @version   2.5.9
+ *  @version   2.6.0
  *  @date      2019.4
  */
 
@@ -575,7 +575,7 @@ if (!Date.now) {
         },
 
         drawing: function () {
-            if (this.isDrawing && this.canvasSettings.inputType !== 'rubber') {
+            if (this.isDrawing && this.canvasSettings.inputType !== 'rubber' && this.curve) {
                 var currentMid = this.getMidInputCoords(this.coords.current);
                 
                 this.ctx.beginPath();
