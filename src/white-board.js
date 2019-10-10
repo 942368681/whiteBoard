@@ -1,7 +1,7 @@
 /**
  *  @brief     白板组件
  *  @author    sfl
- *  @version   2.6.0
+ *  @version   2.6.1
  *  @date      2019.4
  */
 
@@ -105,8 +105,26 @@ if (!Date.now) {
             return num;
         },
 
+        // 加纸时重置轨迹点Y轴比例
+        resetScale: function (item, curHeight) {
+            if (!item.content.length) return;
+
+            var wrapH = this.wrapDom.getBoundingClientRect().height;
+
+            for (var i = 0, len = item.content.length; i < len; i++) {
+                for (var j = 0, l = item.content[i].path.length; j < l; j++) {
+                    if (item.content[i].path[j].useRatio) {
+                        item.content[i].path[j].currentMidY = (item.content[i].path[j].currentMidY * curHeight) / wrapH;
+                        item.content[i].path[j].oldY = (item.content[i].path[j].oldY * curHeight) / wrapH;
+                        item.content[i].path[j].oldMidY = (item.content[i].path[j].oldMidY * curHeight) / wrapH;
+                    }
+                }
+            }
+        },
+
         // 初始化画布布局
-        initLayout: function () {
+        initLayout: function (type) {
+            var curHeight = this.wrapDom.getBoundingClientRect().height;
             var maxPage = Math.max.apply(Math, this.options.zIndexInfo.map(function(e) { return (e.page || 1) }));
             console.log('最大页数: ' + maxPage);
             this.wrapDom.style.height = this.initHeight + ((maxPage - 1)*this.pageHeight) + 'px';
@@ -117,6 +135,7 @@ if (!Date.now) {
 
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
+                if (type === 'isAddPage') this.resetScale(item, curHeight);
                 this.createCanvas(item);
             }
 
@@ -237,7 +256,7 @@ if (!Date.now) {
         addPage: function () {
             if (this.options.zIndexInfo[0].page === this.options.maxPage) return;
             this.options.zIndexInfo[0].page += 1;
-            this.initLayout();
+            this.initLayout('isAddPage');
             if (this.options.addCallBack && typeof this.options.addCallBack === 'function') this.options.addCallBack();
         },
 
@@ -349,6 +368,8 @@ if (!Date.now) {
         this.timeout = null;
         this.superClass = superClass;
         this.el = el;
+        this.elWidth = el.width;
+        this.elHeight = el.height;
         this.info = obj;
         this.canvasSettings = {
             strokeStyle: '',
@@ -570,6 +591,7 @@ if (!Date.now) {
                 this.info.content.push(this.curve);
                 this.curve = null;
             }
+            // console.log(this.info)
             // console.log(this.info.content);
             // console.log(JSON.stringify(this.info.content));
         },
@@ -585,12 +607,13 @@ if (!Date.now) {
                 const currentCoords = this.getCurrentCoords(this.coords);
                 // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
                 this.curve.path.push({
-                    currentMidX: currentMid.x,
-                    currentMidY: currentMid.y,
-                    oldX: currentCoords.old.x,
-                    oldY: currentCoords.old.y,
-                    oldMidX: currentCoords.oldMid.x,
-                    oldMidY: currentCoords.oldMid.y
+                    currentMidX: (currentMid.x / this.elWidth),
+                    currentMidY: (currentMid.y / this.elHeight),
+                    oldX: (currentCoords.old.x / this.elWidth),
+                    oldY: (currentCoords.old.y / this.elHeight),
+                    oldMidX: (currentCoords.oldMid.x / this.elWidth),
+                    oldMidY: (currentCoords.oldMid.y / this.elHeight),
+                    useRatio: true
                 });
                 
                 this.coords.old = this.coords.current;
@@ -949,12 +972,29 @@ if (!Date.now) {
                 this.setUp(oPathInfo.canvasSettings);
                 this.ctx.beginPath();
                 for (var j = 0, length = arr.length; j < length; j++) {
-                    var currentMidX = arr[j].currentMidX;
-                    var currentMidY = arr[j].currentMidY;
-                    var oldX = arr[j].oldX;
-                    var oldY = arr[j].oldY;
-                    var oldMidX = arr[j].oldMidX;
-                    var oldMidY = arr[j].oldMidY;
+
+                    var currentMidX,
+                        currentMidY,
+                        oldX,
+                        oldY,
+                        oldMidX,
+                        oldMidY;
+
+                    if (arr[j].useRatio) {
+                        currentMidX = Number((arr[j].currentMidX * this.elWidth).toFixed(0));
+                        currentMidY = Number((arr[j].currentMidY * this.elHeight).toFixed(0));
+                        oldX = Number((arr[j].oldX * this.elWidth).toFixed(0));
+                        oldY = Number((arr[j].oldY * this.elHeight).toFixed(0));
+                        oldMidX = Number((arr[j].oldMidX * this.elWidth).toFixed(0));
+                        oldMidY = Number((arr[j].oldMidY * this.elHeight).toFixed(0));
+                    } else {
+                        currentMidX = arr[j].currentMidX;
+                        currentMidY = arr[j].currentMidY;
+                        oldX = arr[j].oldX;
+                        oldY = arr[j].oldY;
+                        oldMidX = arr[j].oldMidX;
+                        oldMidY = arr[j].oldMidY;
+                    }
                     this.ctx.moveTo(currentMidX, currentMidY);
                     this.ctx.quadraticCurveTo(oldX, oldY, oldMidX, oldMidY);
                 }
