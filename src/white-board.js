@@ -106,20 +106,44 @@ if (!Date.now) {
         },
 
         // 加纸时重置轨迹点Y轴比例
-        resetScale: function (item, curHeight) {
+        resetScale: function (item, curHeight, rubberRange) {
             if (!item.content.length) return;
 
             var wrapH = this.wrapDom.getBoundingClientRect().height;
 
             for (var i = 0, len = item.content.length; i < len; i++) {
-                for (var j = 0, l = item.content[i].path.length; j < l; j++) {
-                    if (item.content[i].path[j].useRatio) {
+                var useRatio = item.content[i].useRatio;
+                if (useRatio) {
+                    for (var j = 0, l = item.content[i].path.length; j < l; j++) {
+                        // 更新Y轴相关轨迹点比例
                         item.content[i].path[j].currentMidY = (item.content[i].path[j].currentMidY * curHeight) / wrapH;
                         item.content[i].path[j].oldY = (item.content[i].path[j].oldY * curHeight) / wrapH;
                         item.content[i].path[j].oldMidY = (item.content[i].path[j].oldMidY * curHeight) / wrapH;
                     }
+                    // 更新轨迹矩形区域比例
+                    item.content[i].rectArea = this.getRectArea(item.content[i].path, rubberRange, this.wrapDom);
                 }
             }
+        },
+
+        // 计算轨迹矩形区域
+        getRectArea: function (pathArr, rubberRange, el) {
+            var disX = rubberRange / el.clientWidth;
+            var disY = rubberRange / el.clientHeight;
+            var o = {xMin: Infinity, xMax: -Infinity, yMin: Infinity, yMax: -Infinity};
+            var obj = pathArr.reduce(function (prev, cur) {
+                prev.xMin = Math.min.apply(null, [prev.xMin, cur.currentMidX, cur.oldX, cur.oldMidX]);
+                prev.xMax = Math.max.apply(null, [prev.xMax, cur.currentMidX, cur.oldX, cur.oldMidX]);
+                prev.yMin = Math.min.apply(null, [prev.yMin, cur.currentMidY, cur.oldY, cur.oldMidY]);
+                prev.yMax = Math.max.apply(null, [prev.yMax, cur.currentMidY, cur.oldY, cur.oldMidY]);
+                return prev;
+            }, o);
+            return [
+                obj.xMin - disX <= 0 ? 0 : obj.xMin - disX, 
+                obj.xMax + disX >= el.clientWidth ? el.clientWidth : obj.xMax + disX, 
+                obj.yMin - disY <= 0 ? 0 : obj.yMin - disY, 
+                obj.yMax + disY >= el.clientHeight ? el.clientHeight : obj.yMax + disY
+            ];
         },
 
         // 初始化画布布局
@@ -135,7 +159,7 @@ if (!Date.now) {
 
             for (var i = 0, len = this.options.zIndexInfo.length; i < len; i++) {
                 var item = this.options.zIndexInfo[i];
-                if (type === 'isAddPage') this.resetScale(item, curHeight);
+                if (type === 'isAddPage') this.resetScale(item, curHeight, this.options.rubberRange);
                 this.createCanvas(item);
             }
 
@@ -542,7 +566,8 @@ if (!Date.now) {
                 this.curve = {
                     path: [],
                     canvasSettings: Object.assign({}, this.canvasSettings),
-                    rectArea: []
+                    rectArea: [],
+                    useRatio: true
                 };
     
                 if (!w.requestAnimationFrame) this.drawing();
@@ -587,7 +612,7 @@ if (!Date.now) {
                 this.rubberUp(e);
             } else {
                 if (!this.curve) return;
-                this.curve.rectArea = this.getRectArea(this.curve.path);
+                this.curve.rectArea = this.superClass.getRectArea(this.curve.path, this.rubberRange, this.el);
                 this.info.content.push(this.curve);
                 this.curve = null;
             }
@@ -612,8 +637,7 @@ if (!Date.now) {
                     oldX: (currentCoords.old.x / this.elWidth),
                     oldY: (currentCoords.old.y / this.elHeight),
                     oldMidX: (currentCoords.oldMid.x / this.elWidth),
-                    oldMidY: (currentCoords.oldMid.y / this.elHeight),
-                    useRatio: true
+                    oldMidY: (currentCoords.oldMid.y / this.elHeight)
                 });
                 
                 this.coords.old = this.coords.current;
@@ -675,11 +699,17 @@ if (!Date.now) {
             for (var i = 0, len = this.info.content.length; i < len; i++) {
                 var oContent = this.info.content[i];
                 if (!oContent) continue;
+
+                var xMin = Number((oContent.rectArea[0] * this.elWidth).toFixed(0));
+                var xMax = Number((oContent.rectArea[1] * this.elWidth).toFixed(0));
+                var yMin = Number((oContent.rectArea[2] * this.elHeight).toFixed(0));
+                var yMax = Number((oContent.rectArea[3] * this.elHeight).toFixed(0));
+
                 var rect2 = {
-                    x: oContent.rectArea[0],
-                    y: oContent.rectArea[2],
-                    width: oContent.rectArea[1] - oContent.rectArea[0],
-                    height: oContent.rectArea[3] - oContent.rectArea[2]
+                    x: xMin,
+                    y: yMin,
+                    width: xMax - xMin,
+                    height: yMax - yMin
                 }
                 var bool = this.isOverlap(rect1, rect2);
                 if (bool) {
@@ -727,41 +757,22 @@ if (!Date.now) {
             for (var i = 0, len = pathArr.length; i < len; i++) {
                 var oPoint = pathArr[i];
                 var coords1 = {
-                    x: oPoint.currentMidX,
-                    y: oPoint.currentMidY
+                    x: Number((oPoint.currentMidX * this.elWidth).toFixed(0)),
+                    y: Number((oPoint.currentMidY * this.elHeight).toFixed(0))
                 };
                 var coords2 = {
-                    x: oPoint.oldX,
-                    y: oPoint.oldY
+                    x: Number((oPoint.oldX * this.elWidth).toFixed(0)),
+                    y: Number((oPoint.oldY * this.elHeight).toFixed(0))
                 };
                 var coords3 = {
-                    x: oPoint.oldMidX,
-                    y: oPoint.oldMidY
+                    x: Number((oPoint.oldMidX * this.elWidth).toFixed(0)),
+                    y: Number((oPoint.oldMidY * this.elHeight).toFixed(0))
                 };
                 if (this.isFitPath(coords1, rectArea) || this.isFitPath(coords2, rectArea) || this.isFitPath(coords3, rectArea)) {
                     return true;
                 }
             }
             return false;
-        },
-
-        // 计算轨迹矩形区域
-        getRectArea: function (pathArr) {
-            var dis = this.rubberRange;
-            var o = {xMin: Infinity, xMax: -Infinity, yMin: Infinity, yMax: -Infinity};
-            var obj = pathArr.reduce(function (prev, cur) {
-                prev.xMin = Math.min.apply(null, [prev.xMin, cur.currentMidX, cur.oldX, cur.oldMidX]);
-                prev.xMax = Math.max.apply(null, [prev.xMax, cur.currentMidX, cur.oldX, cur.oldMidX]);
-                prev.yMin = Math.min.apply(null, [prev.yMin, cur.currentMidY, cur.oldY, cur.oldMidY]);
-                prev.yMax = Math.max.apply(null, [prev.yMax, cur.currentMidY, cur.oldY, cur.oldMidY]);
-                return prev;
-            }, o);
-            return [
-                obj.xMin - dis <= 0 ? 0 : obj.xMin - dis, 
-                obj.xMax + dis >= this.el.width ? this.el.width : obj.xMax + dis, 
-                obj.yMin - dis <= 0 ? 0 : obj.yMin - dis, 
-                obj.yMax + dis >= this.el.height ? this.el.height : obj.yMax + dis
-            ];
         },
 
         // 检测触发区域
@@ -968,6 +979,7 @@ if (!Date.now) {
             for (var i = 0, len = content.length; i < len; i++) {
                 var oPathInfo = content[i];
                 if (!oPathInfo || !oPathInfo.path.length) continue;
+                var useRatio = oPathInfo.useRatio;
                 var arr = oPathInfo.path;
                 this.setUp(oPathInfo.canvasSettings);
                 this.ctx.beginPath();
@@ -980,7 +992,7 @@ if (!Date.now) {
                         oldMidX,
                         oldMidY;
 
-                    if (arr[j].useRatio) {
+                    if (useRatio) {
                         currentMidX = Number((arr[j].currentMidX * this.elWidth).toFixed(0));
                         currentMidY = Number((arr[j].currentMidY * this.elHeight).toFixed(0));
                         oldX = Number((arr[j].oldX * this.elWidth).toFixed(0));
