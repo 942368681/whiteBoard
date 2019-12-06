@@ -2,6 +2,9 @@ const baseConfig = require('./webpack.base.js');
 const merge = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
+const host = require('./build/ip')();
+
+console.log('========>host:', host)
 
 module.exports = merge(baseConfig, {
     devtool: 'cheap-module-eval-source-map',
@@ -18,7 +21,7 @@ module.exports = merge(baseConfig, {
         }),
     ],
     devServer: {
-        host: 'localhost',
+        host: host || 'localhost',
         port: 3009,
         progress: true,
         open: true,
