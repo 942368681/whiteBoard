@@ -12,12 +12,6 @@ import { Image } from './components/image/image';
 import { Audio } from './components/audio/audio';
 import { N2SVG } from './components/n2svg/n2svg';
 
-if (!Date.now) {
-    Date.now = function () {
-        return new Date().getTime();
-    };
-}
-
 (function () {
     'use strict';
 
@@ -32,7 +26,7 @@ if (!Date.now) {
         !window.requestAnimationFrame || !window.cancelAnimationFrame) {
         var lastTime = 0;
         window.requestAnimationFrame = function (callback) {
-            var now = Date.now();
+            var now = new Date().getTime();
             var nextTime = Math.max(lastTime + 16, now);
             return setTimeout(function () {
                     callback(lastTime = nextTime);
@@ -150,7 +144,6 @@ if (!Date.now) {
         initLayout: function (type) {
             var curHeight = this.wrapDom.getBoundingClientRect().height;
             var maxPage = Math.max.apply(Math, this.options.zIndexInfo.map(function(e) { return (e.page || 1) }));
-            console.log('最大页数: ' + maxPage);
             this.wrapDom.style.height = this.initHeight + ((maxPage - 1)*this.pageHeight) + 'px';
             this.wrapDom.style.position = 'relative';
 
@@ -165,64 +158,6 @@ if (!Date.now) {
 
             // 加纸按钮
             if (this.options.addBtn !== false) this.initAddBtn();
-
-            // 测试多媒体控件dom接入
-            /* var testBtn = document.createElement('button');
-            testBtn.innerText = "img";
-            testBtn.style.position = 'absolute';
-            testBtn.style.left=200+'px';
-            testBtn.style.zIndex = 999;
-            this.wrapDom.appendChild(testBtn);
-            var _self = this;
-            testBtn.onclick = function () {
-                // _self.createMediaDom('N2', _self.options.zIndexInfo[0].content, true);
-                _self.createMediaDom('img', 'https://s.gravatar.com/avatar/7d228fb734bde96e1bae224107cc48cb', true);
-            }; */
-
-            // 测试多媒体控件dom接入（音频）
-            /* var testBtn = document.createElement('button');
-            testBtn.innerText = "audio";
-            testBtn.style.position = 'absolute';
-            testBtn.style.zIndex = 999;
-            this.wrapDom.appendChild(testBtn);
-            var _self = this;
-            testBtn.onclick = function () {
-                _self.createMediaDom('audio', "", true);
-            }; */
-
-            // 测试橡皮擦 && 画笔
-            /* var testBtn = document.createElement('button');
-            testBtn.innerText = "橡皮";
-            testBtn.style.position = 'absolute';
-            testBtn.style.zIndex = 999;
-            this.wrapDom.appendChild(testBtn);
-            var _self = this;
-            testBtn.onclick = function () {
-                // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
-                _self.canvasObj[0].setUp({ inputType: 'rubber'});
-            };
-            var testBtn = document.createElement('button');
-            testBtn.innerText = "画笔";
-            testBtn.style.position = 'absolute';
-            testBtn.style.left=100+'px';
-            testBtn.style.zIndex = 999;
-            this.wrapDom.appendChild(testBtn);
-            var _self = this;
-            testBtn.onclick = function () {
-                // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
-                _self.canvasObj[0].setUp({ inputType: 'fountain-pen', strokeStyle: '#FF9500' });
-            }; */
-
-            // 测试禁用
-            /* var testBtn = document.createElement('button');
-            testBtn.innerText = "disable";
-            testBtn.style.position = 'absolute';
-            testBtn.style.zIndex = 999;
-            this.wrapDom.appendChild(testBtn);
-            var _self = this;
-            testBtn.onclick = function () {
-                _self.disableBoard(true);
-            }; */
         },
 
         initAddBtn: function () {
@@ -288,106 +223,20 @@ if (!Date.now) {
         disableBoard: function (bool) {
             this.options.zIndexInfo[0].disabled = bool;
             this.initLayout();
-        },
-
-        // 获取随机位置
-        getRandomPosition: function () {
-            var clientW = this.wrapDom.clientWidth;
-            var clientH = this.wrapDom.clientHeight;
-            var xRange = [clientW * 0.2, clientW * 0.5];
-            var yRange = [clientH * 0.2, clientH * 0.5];
-            return {
-                x: Math.round(Math.random() * (xRange[1] - xRange[0]) + xRange[0]),
-                y: Math.round(Math.random() * (yRange[1] - yRange[0]) + yRange[0])
-            }
-        },
-
-        // 找出所有附加元素中层级最大值
-        findMaxIndex: function (other) {
-            var arr = [];
-            var max;
-            for (var key in other) {
-                if (other[key].length) {
-                    arr.push(Math.max.apply(null, other[key].map(function (v) {
-                        return v.zIndex;
-                    })));
-                }
-            }
-            if (arr.length) {
-                max = Math.max.apply(null, arr);
-            } else {
-                max= 0;
-            }
-            return max;
-        },
-
-        // 插入多媒体模块及n2笔svg图片
-        createMediaDom: function (type, data, initDrag) {
-            var oCanvas = this.canvasObj[0];
-            var oIndexTotal = this.findMaxIndex(oCanvas.info.other);
-            oIndexTotal += 1;
-            var dom = null;
-            var info = {
-                type: type, // 类型
-                zIndex: "", // 当前层级画板的层级
-                info: {} // 具体信息
-            };
-            var coordinate = this.getRandomPosition();
-            switch (type) {
-                case 'img':
-                    info.zIndex = oIndexTotal;
-                    info.info.url = data;
-                    info.info.left = coordinate.x + 'px';
-                    info.info.top = coordinate.y + 'px';
-                    info.info.width = '120px';
-                    info.info.height = '120px';
-                    dom = new Image(info, this).dom;
-                    break;
-                case 'video':
-                    alert("暂不支持");
-                    break;
-                case 'audio':
-                    dom = new Audio(data, coordinate, oIndexTotal, this).dom;
-                    info.type = "audio";
-                    info.zIndex = oIndexTotal;
-                    break;
-                case 'N2':
-                    dom = new N2SVG(data, coordinate, oIndexTotal, this).dom;
-                    info.type = "N2";
-                    info.zIndex = oIndexTotal;
-                    break;
-                default:
-                    alert("未知类型控件");
-                    break;
-            }
-            oCanvas.info.other[type].push(info);
-            oCanvas.el.parentNode.appendChild(dom);
-            // 执行回调
-            oCanvas.cbFunc(true, 'async');
-            
-            if (initDrag) new Drag(dom, oCanvas, info);
-        },
-
-        // 通知元素已被删除
-        deleteElFromOtherData: function (type, zIndex, dom) {
-            var oCanvas = this.canvasObj[0];
-            for (var i = 0, len = oCanvas.info.other[type].length; i < len; i++) {
-                if (oCanvas.info.other[type][i].zIndex === zIndex) {
-                    oCanvas.info.other[type].splice(i, 1);
-                    break;
-                }
-            }
-            oCanvas.el.parentNode.removeChild(dom);
-            dom = null;
-            // 执行回调
-            oCanvas.cbFunc(true, 'all');
         }
     };
 
     if(!w.WhiteBoard) w.WhiteBoard =  WhiteBoard;
 
 
+
     /******************************* 单个canvas画布对象 **********************************/
+    /**
+     * 
+     * @param {*} el 当前创建的canvas实例
+     * @param {*} obj 当前canvas的数据，zIndexInfo的一项
+     * @param {*} superClass WhiteBoard对象
+     */
     var Canvas = function (el, obj, superClass) {
         this.timeout = null;
         this.superClass = superClass;
@@ -411,11 +260,9 @@ if (!Date.now) {
         this.isDrawing = false;
         this.coords = {};
         this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
-        // this.locus = null;
         this.curve = null;
         this.setUp(this.initSettings(obj));
         this.drawingContent(Object.assign({}, this.canvasSettings));
-        this.initInnerComps(obj.other);
         if (!obj.disabled) {
             this.initDrawEvent();
         }
@@ -459,7 +306,6 @@ if (!Date.now) {
             }, { passive: false });
 
             w.addEventListener('touchend', function (e) {
-                _self.info.update = true;
                 _self.touchEnd.call(_self, e);
             }, { passive: false });
 
@@ -473,7 +319,6 @@ if (!Date.now) {
             });
             
             w.addEventListener('mouseup', function (e) {
-                _self.info.update = true;
                 _self.touchEnd.call(_self, e);
             });
 
@@ -503,8 +348,7 @@ if (!Date.now) {
             }
         },
         // 回调方法执行
-        cbFunc: function (shouldUpdate, type) {
-            if (shouldUpdate) this.info.update = true;
+        cbFunc: function (type) {
             switch (type) {
                 case 'async':
                     if (this.watcher && this.watcher.cb && typeof this.watcher.cb === "function") {
@@ -562,7 +406,6 @@ if (!Date.now) {
                 this.coords.current = this.coords.old = coords;
                 this.coords.oldMid = this.getMidInputCoords(coords);
                 
-                // this.locus = { path: 'M'+ this.coords.current.x +' '+ this.coords.current.y +'' };
                 this.curve = {
                     path: [],
                     canvasSettings: Object.assign({}, this.canvasSettings),
@@ -587,15 +430,8 @@ if (!Date.now) {
             this.coords.current = coords;
 
             if (this.canvasSettings.inputType === 'rubber') {
-                /* var pos = {
-                    x: coords.x,
-                    y: coords.y
-                };
-                this.checkRectArea(pos); */
                 this.rubberMove(e, coords);
             } else {
-                // this.locus.path = this.locus.path + 'L'+ this.coords.current.x +' '+ this.coords.current.y +'';
-                // this.curve.path.push([this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y]);
                 if (!w.requestAnimationFrame) this.drawing();
                 this.clearEventBubble(e);
             }
@@ -607,7 +443,6 @@ if (!Date.now) {
                 this.isDrawing = false;
                 this.clearEventBubble(e);
             }
-            // this.info.content.push(this.locus);
             if (this.canvasSettings.inputType === 'rubber') {
                 this.rubberUp(e);
             } else {
@@ -621,16 +456,40 @@ if (!Date.now) {
             // console.log(JSON.stringify(this.info.content));
         },
 
+        /**
+         * 计算二次贝塞尔曲线控制点
+         * @param  {Array<number>} start 起点
+         * @param  {Array<number>} end 终点
+         * @param  {number} curveness 曲度(0-1)
+         */
+        drawCurvePath: function (start, end, curveness) {
+            return [
+                ( start[ 0 ] + end[ 0 ] ) / 2 - ( start[ 1 ] - end[ 1 ] ) * curveness,
+                ( start[ 1 ] + end[ 1 ] ) / 2 - ( end[ 0 ] - start[ 0 ] ) * curveness
+            ];
+        },
+
         drawing: function () {
             if (this.isDrawing && this.canvasSettings.inputType !== 'rubber' && this.curve) {
                 var currentMid = this.getMidInputCoords(this.coords.current);
-                
+                var controlPoint = this.drawCurvePath([this.coords.old.x, this.coords.old.y], [this.coords.current.x, this.coords.current.y], 0.2)
                 this.ctx.beginPath();
+
                 this.ctx.moveTo(currentMid.x, currentMid.y);
                 this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
+
+                // this.ctx.moveTo(this.coords.current.x, this.coords.current.y);
+                // this.ctx.quadraticCurveTo(controlPoint[0], controlPoint[1], this.coords.old.x, this.coords.old.y);
+
+                // this.ctx.moveTo(this.coords.current.x, this.coords.current.y);
+                // this.ctx.lineTo(this.coords.current.x, this.coords.current.y);
+
                 this.ctx.stroke();
+
+
+
                 const currentCoords = this.getCurrentCoords(this.coords);
-                // this.locus.path = this.locus.path + 'L'+ currentCoords.current.x +' '+ currentCoords.current.y +'';
+
                 this.curve.path.push({
                     currentMidX: (currentMid.x / this.elWidth),
                     currentMidY: (currentMid.y / this.elHeight),
@@ -642,13 +501,29 @@ if (!Date.now) {
                 
                 this.coords.old = this.coords.current;
                 this.coords.oldMid = currentMid;
+
+                /* if (this.curve.path.length > 3) {
+                    const lastTwoPoints = this.curve.path.slice(-2);
+                    const controlPoint = lastTwoPoints[0];
+                    const endPoint = {
+                        x: (lastTwoPoints[0].oldX*this.elWidth + lastTwoPoints[1].oldX*this.elWidth) / 2,
+                        y: (lastTwoPoints[0].oldY*this.elHeight + lastTwoPoints[1].oldY*this.elHeight) / 2,
+                    }
+                    // drawLine(beginPoint, controlPoint, endPoint);
+                    // beginPoint = endPoint;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.coords.current.x, this.coords.current.y);
+                    this.ctx.quadraticCurveTo(controlPoint.oldX*this.elWidth, controlPoint.oldY*this.elHeight, endPoint.x, endPoint.y);
+                    this.ctx.stroke();
+                    // this.ctx.closePath();
+                } */
             }
             if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
         },
 
         // 橡皮区域拖拽开始
         rubberStart: function (e, coords) {
-            this.cbFunc(false, 'sync');
+            this.cbFunc('sync');
             this.clearEventBubble(e);
             this.rubberOn = true;
             this.rubberStartX = coords.x;
@@ -677,7 +552,7 @@ if (!Date.now) {
         // 橡皮区域抬起
         rubberUp: function (e) {
             if (!this.rubberOn) return;
-            this.cbFunc(false, 'async');
+            this.cbFunc('async');
             this.clearEventBubble(e);
             var selDiv = document.getElementById('board-rubber-area');
             // 获取参数
@@ -775,41 +650,6 @@ if (!Date.now) {
             return false;
         },
 
-        // 检测触发区域
-        checkRectArea: function (coords) {
-            if (!this.info.content.length) {
-                return;
-            };
-            for (var i = 0, len = this.info.content.length; i < len; i++) {
-                var oContent = this.info.content[i];
-                if (!oContent) continue;
-                if (this.isFitPath(coords, oContent.rectArea)) {
-                    if (this.matchPath(coords, oContent.path)) {
-                        this.info.content.splice(i, 1);
-                        this.patchDrawing(oContent);
-                        return;
-                    }
-                }
-            }
-        },
-        patchDrawing: function (oContent) {
-
-            var canvas = this.el;
-            var context = canvas.getContext("2d");
-            var x = oContent.rectArea[0];
-            var y = oContent.rectArea[2];
-            var disX = oContent.rectArea[1] - x;
-            var disY = oContent.rectArea[3] - y;
-            context.clearRect(x, y, disX, disY);
-
-            this.ctx.save();
-            context.beginPath();
-            context.rect(x, y, disX, disY);
-            this.ctx.clip();
-            this.drawingContent(Object.assign({}, this.canvasSettings), 'patch');
-            this.ctx.restore();
-        },
-
         /**
          * 检测点在矩形区域内
          * @param {x, y} coords 
@@ -892,8 +732,8 @@ if (!Date.now) {
             x *= (width / rect.width);
             y *= (height / rect.height);
             return {
-                x: Number(x.toFixed(0)),
-                y: Number(y.toFixed(0))
+                x: x,
+                y: y
             };
         },
     
@@ -929,50 +769,14 @@ if (!Date.now) {
             this.ctx.globalCompositeOperation = oldGlobalCompositeOperation;
         },
 
-        // 保存图片(base64)
-        saveToBase64: function () {
-            var image = new Image();
-            image.src = this.el.toDataURL("image/png");
-            console.log(image);
-            return image;
-        },
-        // 保存图片(blob对象)
-        saveToBlob: function () {
-            this.el.toBlob(function (blob) {
-                var url = URL.createObjectURL(blob);
-                var image = new Image();
-                image.onload = function() {
-            　　    URL.revokeObjectURL(url)
-                };
-                console.log(url);
-                image.src=url;
-                return image;
-            });
-        },
         // 初始化白板内容
-        drawingContent: function (canvasSettings, type) {
-            if (type !== 'patch') this.clearAll();
+        drawingContent: function (canvasSettings) {
+            this.clearAll();
+
             if (!this.info.content.length) {
                 this.setUp(canvasSettings);
                 return;
             }
-
-            /* for (var i = 0, len = this.info.content.length; i < len; i++) {
-                var arr = this.info.content[i].path.split('M')[1].split('L');
-                for (var j = 0, length = arr.length; j < length; j++) {
-                    var x = arr[j].split(' ')[0];
-                    var y = arr[j].split(' ')[1];
-                    if (j === 0) {
-                        this.ctx.beginPath();
-                        this.ctx.moveTo(x, y);
-                    } else if (j === length - 1) {
-                        this.ctx.closePath();
-                    } else {
-                        this.ctx.lineTo(x, y);
-                        this.ctx.stroke(); 
-                    }
-                }
-            } */
 
             var content = this.info.content;
             
@@ -1016,40 +820,18 @@ if (!Date.now) {
             // 恢复上一次的设置
             this.setUp(canvasSettings);
         },
-        // 初始化其他内容（多媒体控件）
-        initInnerComps: function (o) {
-            for (var key in o) {
-                if (o[key].length) this.drawComps(o[key], key);
-            }
-        },
-        // 初始化多媒体控件布局
-        drawComps: function (data, type) {
-            switch (type) {
-                case 'img':
-                    for (var i = 0, len = data.length; i < len; i++) {
-                        var dom = new Image(data[i], this.superClass).dom;
-                        new Drag(dom, this, data[i]);
-                        this.el.parentNode.appendChild(dom);
-                    }
-                    break;
-                case 'innerImgData':
-                    this.doDrawImg(data);
-                    break;
-                default:
-                    break;
-            }
-        },
+
         // 清除画布的所有内容
         clearAll: function () {
             var canvas = this.el;
-            /* var context = canvas.getContext("2d");
-            context.clearRect(0, 0, canvas.width, canvas.height); */
-
             canvas.width = canvas.width;
         }
     };
     /*************************************************************************/
     
+
+
+
     /********************************* 拖拽类 *********************************/
     function Drag(dom, oCanvas, info) {
         this.oCanvas = oCanvas;
@@ -1076,7 +858,7 @@ if (!Date.now) {
     //按下
     Drag.prototype.down = function (_self) {
         // 执行回调
-        _self.oCanvas.cbFunc(false, 'sync');
+        _self.oCanvas.cbFunc('sync');
 
         _self.flag = true;
         var touch;
@@ -1144,7 +926,7 @@ if (!Date.now) {
         _self.flag = false;
 
         // 执行回调
-        _self.oCanvas.cbFunc(true, 'async');
+        _self.oCanvas.cbFunc('async');
 
         var oStyle = w.getComputedStyle(_self.dom);
         _self.info.info.left = oStyle.left;
