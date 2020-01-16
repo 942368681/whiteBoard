@@ -2,7 +2,8 @@ const baseConfig = require('./webpack.base.js');
 const merge = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
-const host = require('./build/ip')();
+// const host = require('./build/ip')();
+const host = 'localhost';
 
 console.log('========>host:', host)
 
