@@ -8,9 +8,15 @@
 import './white-board.css';
 import '../lib/font/font';
 import '../lib/icon/iconfont.css';
-import { Image } from './components/image/image';
-import { Audio } from './components/audio/audio';
-import { N2SVG } from './components/n2svg/n2svg';
+import {
+    Image
+} from './components/image/image';
+import {
+    Audio
+} from './components/audio/audio';
+import {
+    N2SVG
+} from './components/n2svg/n2svg';
 
 (function () {
     'use strict';
@@ -42,10 +48,12 @@ import { N2SVG } from './components/n2svg/n2svg';
     var WhiteBoard = function (o) {
         return new WhiteBoard.prototype.fn(o);
     };
-    
+
     WhiteBoard.prototype.fn = function (o) {
         // 初始化层级排序
-        o.zIndexInfo.sort(function (prev, next) { return next.zIndex - prev.zIndex });
+        o.zIndexInfo.sort(function (prev, next) {
+            return next.zIndex - prev.zIndex
+        });
         // 初始参数赋值
         this.options = o;
         // 父级容器dom
@@ -56,12 +64,12 @@ import { N2SVG } from './components/n2svg/n2svg';
         this.pageHeight = o.pageHeight || this.wrapDom.getBoundingClientRect().height;
         // 总层级(画板层级数和多媒体控件数的总和)
         this.zIndexTotal = this.getAllZindex(o.zIndexInfo),
-        // 画板各层级cavas对象实例
-        this.canvasObj = [];
+            // 画板各层级cavas对象实例
+            this.canvasObj = [];
         // 初始化布局
         this.initLayout();
     };
-    
+
     WhiteBoard.prototype.fn.prototype = {
         constructor: WhiteBoard.prototype.fn,
 
@@ -106,17 +114,14 @@ import { N2SVG } from './components/n2svg/n2svg';
             var wrapH = this.wrapDom.getBoundingClientRect().height;
 
             for (var i = 0, len = item.content.length; i < len; i++) {
-                var useRatio = item.content[i].useRatio;
-                if (useRatio) {
-                    for (var j = 0, l = item.content[i].path.length; j < l; j++) {
-                        // 更新Y轴相关轨迹点比例
-                        item.content[i].path[j].currentMidY = (item.content[i].path[j].currentMidY * curHeight) / wrapH;
-                        item.content[i].path[j].oldY = (item.content[i].path[j].oldY * curHeight) / wrapH;
-                        item.content[i].path[j].oldMidY = (item.content[i].path[j].oldMidY * curHeight) / wrapH;
-                    }
-                    // 更新轨迹矩形区域比例
-                    item.content[i].rectArea = this.getRectArea(item.content[i].path, rubberRange, this.wrapDom);
+                for (var j = 0, l = item.content[i].path.length; j < l; j++) {
+                    // 更新Y轴相关轨迹点比例
+                    item.content[i].path[j].currentMidY = (item.content[i].path[j].currentMidY * curHeight) / wrapH;
+                    item.content[i].path[j].oldY = (item.content[i].path[j].oldY * curHeight) / wrapH;
+                    item.content[i].path[j].oldMidY = (item.content[i].path[j].oldMidY * curHeight) / wrapH;
                 }
+                // 更新轨迹矩形区域比例
+                item.content[i].rectArea = this.getRectArea(item.content[i].path, rubberRange, this.wrapDom);
             }
         },
 
@@ -124,18 +129,23 @@ import { N2SVG } from './components/n2svg/n2svg';
         getRectArea: function (pathArr, rubberRange, el) {
             var disX = rubberRange / el.clientWidth;
             var disY = rubberRange / el.clientHeight;
-            var o = {xMin: Infinity, xMax: -Infinity, yMin: Infinity, yMax: -Infinity};
+            var o = {
+                xMin: Infinity,
+                xMax: -Infinity,
+                yMin: Infinity,
+                yMax: -Infinity
+            };
             var obj = pathArr.reduce(function (prev, cur) {
-                prev.xMin = Math.min.apply(null, [prev.xMin, cur.currentMidX, cur.oldX, cur.oldMidX]);
-                prev.xMax = Math.max.apply(null, [prev.xMax, cur.currentMidX, cur.oldX, cur.oldMidX]);
-                prev.yMin = Math.min.apply(null, [prev.yMin, cur.currentMidY, cur.oldY, cur.oldMidY]);
-                prev.yMax = Math.max.apply(null, [prev.yMax, cur.currentMidY, cur.oldY, cur.oldMidY]);
+                prev.xMin = Math.min.apply(null, [prev.xMin, cur.x]);
+                prev.xMax = Math.max.apply(null, [prev.xMax, cur.x]);
+                prev.yMin = Math.min.apply(null, [prev.yMin, cur.y]);
+                prev.yMax = Math.max.apply(null, [prev.yMax, cur.y]);
                 return prev;
             }, o);
             return [
-                obj.xMin - disX <= 0 ? 0 : obj.xMin - disX, 
-                obj.xMax + disX >= el.clientWidth ? el.clientWidth : obj.xMax + disX, 
-                obj.yMin - disY <= 0 ? 0 : obj.yMin - disY, 
+                obj.xMin - disX <= 0 ? 0 : obj.xMin - disX,
+                obj.xMax + disX >= el.clientWidth ? el.clientWidth : obj.xMax + disX,
+                obj.yMin - disY <= 0 ? 0 : obj.yMin - disY,
                 obj.yMax + disY >= el.clientHeight ? el.clientHeight : obj.yMax + disY
             ];
         },
@@ -143,8 +153,10 @@ import { N2SVG } from './components/n2svg/n2svg';
         // 初始化画布布局
         initLayout: function (type) {
             var curHeight = this.wrapDom.getBoundingClientRect().height;
-            var maxPage = Math.max.apply(Math, this.options.zIndexInfo.map(function(e) { return (e.page || 1) }));
-            this.wrapDom.style.height = this.initHeight + ((maxPage - 1)*this.pageHeight) + 'px';
+            var maxPage = Math.max.apply(Math, this.options.zIndexInfo.map(function (e) {
+                return (e.page || 1)
+            }));
+            this.wrapDom.style.height = this.initHeight + ((maxPage - 1) * this.pageHeight) + 'px';
             this.wrapDom.style.position = 'relative';
 
             // 清理dom和已挂载到canvasObj的canvas实例和其他元素
@@ -176,7 +188,7 @@ import { N2SVG } from './components/n2svg/n2svg';
                 ev.cancelBubble = true;
                 ev.stopPropagation();
                 _self.addPage();
-            }; 
+            };
         },
 
         clearWrapDom: function (wrapDom) {
@@ -205,7 +217,7 @@ import { N2SVG } from './components/n2svg/n2svg';
             canvas.width = parentEl.getBoundingClientRect().width;
             canvas.height = parentEl.getBoundingClientRect().height;
             parentEl.appendChild(canvas);
-            
+
             // 初始化画板对象
             var c = new Canvas(canvas, obj, this);
             this.canvasObj.push(c);
@@ -226,7 +238,7 @@ import { N2SVG } from './components/n2svg/n2svg';
         }
     };
 
-    if(!w.WhiteBoard) w.WhiteBoard =  WhiteBoard;
+    if (!w.WhiteBoard) w.WhiteBoard = WhiteBoard;
 
 
 
@@ -254,12 +266,12 @@ import { N2SVG } from './components/n2svg/n2svg';
         this.rubberStartY = 0;
         this.rubberOn = false;
         this.rubberRange = Number(superClass.options.rubberRange) || 10;
-        this.squareOfRubberRange = this.rubberRange*this.rubberRange;
+        this.squareOfRubberRange = this.rubberRange * this.rubberRange;
         this.watcher = superClass.options.watcher;
         this.writeCallBack = superClass.options.writeCallBack;
         this.isDrawing = false;
+        this.beginPoint = null;
         this.coords = {};
-        this.coords.old = this.coords.current = this.coords.oldMid = { x: 0, y: 0 };
         this.curve = null;
         this.setUp(this.initSettings(obj));
         this.drawingContent(Object.assign({}, this.canvasSettings));
@@ -299,25 +311,31 @@ import { N2SVG } from './components/n2svg/n2svg';
             // touch事件
             this.el.addEventListener('touchstart', function (e) {
                 _self.touchStart.call(_self, e, _self.getInputCoords(e));
-            }, { passive: false });
+            }, {
+                passive: false
+            });
 
             w.addEventListener('touchmove', function (e) {
                 _self.touchMove.call(_self, e, _self.getInputCoords(e));
-            }, { passive: false });
+            }, {
+                passive: false
+            });
 
             w.addEventListener('touchend', function (e) {
                 _self.touchEnd.call(_self, e);
-            }, { passive: false });
+            }, {
+                passive: false
+            });
 
             // mouse事件
             this.el.addEventListener('mousedown', function (e) {
                 _self.touchStart.call(_self, e, _self.getInputCoords(e));
             });
-            
+
             w.addEventListener('mousemove', function (e) {
                 _self.touchMove.call(_self, e, _self.getInputCoords(e));
             });
-            
+
             w.addEventListener('mouseup', function (e) {
                 _self.touchEnd.call(_self, e);
             });
@@ -325,7 +343,7 @@ import { N2SVG } from './components/n2svg/n2svg';
             // 绑定回调机制
             this.bindCbFunc(this.el, this);
 
-            if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+            if (w.requestAnimationFrame) requestAnimationFrame(this.drawing.bind(this));
         },
         // 回调监听绑定方法
         bindCbFunc: function (el, _self) {
@@ -337,11 +355,11 @@ import { N2SVG } from './components/n2svg/n2svg';
 
             // 监听输入开始，触发同步回调(兼容事件只执行一次)
             if (_self.writeCallBack && _self.writeCallBack.cb && typeof _self.writeCallBack.cb === "function") {
-                el.addEventListener('touchstart', function fn (e) {
+                el.addEventListener('touchstart', function fn(e) {
                     if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('touchstart', fn);
                     return _self.writeCallBack.cb();
                 });
-                el.addEventListener('mousedown', function fn (e) {
+                el.addEventListener('mousedown', function fn(e) {
                     if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('mousedown', fn);
                     return _self.writeCallBack.cb();
                 });
@@ -403,16 +421,14 @@ import { N2SVG } from './components/n2svg/n2svg';
             if (this.canvasSettings.inputType === 'rubber') {
                 this.rubberStart(e, coords);
             } else {
-                this.coords.current = this.coords.old = coords;
-                this.coords.oldMid = this.getMidInputCoords(coords);
-                
+                this.coords = coords;
+                this.beginPoint = coords;
                 this.curve = {
                     path: [],
                     canvasSettings: Object.assign({}, this.canvasSettings),
-                    rectArea: [],
-                    useRatio: true
+                    rectArea: []
                 };
-    
+
                 if (!w.requestAnimationFrame) this.drawing();
                 this.clearEventBubble(e);
             }
@@ -425,9 +441,9 @@ import { N2SVG } from './components/n2svg/n2svg';
                 this.isDrawing = false;
                 return;
             };
-            if(!this.isDrawing) return;
+            if (!this.isDrawing) return;
 
-            this.coords.current = coords;
+            this.coords = coords;
 
             if (this.canvasSettings.inputType === 'rubber') {
                 this.rubberMove(e, coords);
@@ -453,72 +469,46 @@ import { N2SVG } from './components/n2svg/n2svg';
             }
             // console.log(this.info)
             // console.log(this.info.content);
-            // console.log(JSON.stringify(this.info.content));
-        },
-
-        /**
-         * 计算二次贝塞尔曲线控制点
-         * @param  {Array<number>} start 起点
-         * @param  {Array<number>} end 终点
-         * @param  {number} curveness 曲度(0-1)
-         */
-        drawCurvePath: function (start, end, curveness) {
-            return [
-                ( start[ 0 ] + end[ 0 ] ) / 2 - ( start[ 1 ] - end[ 1 ] ) * curveness,
-                ( start[ 1 ] + end[ 1 ] ) / 2 - ( end[ 0 ] - start[ 0 ] ) * curveness
-            ];
+            console.log(JSON.stringify(this.info.content));
         },
 
         drawing: function () {
             if (this.isDrawing && this.canvasSettings.inputType !== 'rubber' && this.curve) {
-                var currentMid = this.getMidInputCoords(this.coords.current);
-                var controlPoint = this.drawCurvePath([this.coords.old.x, this.coords.old.y], [this.coords.current.x, this.coords.current.y], 0.2)
-                this.ctx.beginPath();
-
-                this.ctx.moveTo(currentMid.x, currentMid.y);
-                this.ctx.quadraticCurveTo(this.coords.old.x, this.coords.old.y, this.coords.oldMid.x, this.coords.oldMid.y);
-
-                // this.ctx.moveTo(this.coords.current.x, this.coords.current.y);
-                // this.ctx.quadraticCurveTo(controlPoint[0], controlPoint[1], this.coords.old.x, this.coords.old.y);
-
-                // this.ctx.moveTo(this.coords.current.x, this.coords.current.y);
-                // this.ctx.lineTo(this.coords.current.x, this.coords.current.y);
-
-                this.ctx.stroke();
-
-
-
-                const currentCoords = this.getCurrentCoords(this.coords);
-
-                this.curve.path.push({
-                    currentMidX: (currentMid.x / this.elWidth),
-                    currentMidY: (currentMid.y / this.elHeight),
-                    oldX: (currentCoords.old.x / this.elWidth),
-                    oldY: (currentCoords.old.y / this.elHeight),
-                    oldMidX: (currentCoords.oldMid.x / this.elWidth),
-                    oldMidY: (currentCoords.oldMid.y / this.elHeight)
-                });
-                
-                this.coords.old = this.coords.current;
-                this.coords.oldMid = currentMid;
-
-                /* if (this.curve.path.length > 3) {
+                // 绘制
+                this.curve.path.push(this.coords);
+                if (this.curve.path.length > 3) {
                     const lastTwoPoints = this.curve.path.slice(-2);
+                    // const controlPoint = {
+                    //     x: lastTwoPoints[0].x * this.elWidth,
+                    //     y: lastTwoPoints[0].y * this.elHeight
+                    // }
+                    // const endPoint = {
+                    //     x: (lastTwoPoints[0].x * this.elWidth + lastTwoPoints[1].x * this.elWidth) / 2,
+                    //     y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
+                    // }
                     const controlPoint = lastTwoPoints[0];
                     const endPoint = {
-                        x: (lastTwoPoints[0].oldX*this.elWidth + lastTwoPoints[1].oldX*this.elWidth) / 2,
-                        y: (lastTwoPoints[0].oldY*this.elHeight + lastTwoPoints[1].oldY*this.elHeight) / 2,
+                        x: (lastTwoPoints[0].x + lastTwoPoints[1].x) / 2,
+                        y: (lastTwoPoints[0].y + lastTwoPoints[1].y) / 2
                     }
-                    // drawLine(beginPoint, controlPoint, endPoint);
-                    // beginPoint = endPoint;
+
                     this.ctx.beginPath();
-                    this.ctx.moveTo(this.coords.current.x, this.coords.current.y);
-                    this.ctx.quadraticCurveTo(controlPoint.oldX*this.elWidth, controlPoint.oldY*this.elHeight, endPoint.x, endPoint.y);
+                    this.ctx.moveTo(this.beginPoint.x, this.beginPoint.y);
+                    this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y);
                     this.ctx.stroke();
-                    // this.ctx.closePath();
-                } */
+                    this.ctx.closePath();
+
+                    this.beginPoint = endPoint;
+                }
+
+                // 存入当前轨迹点
+                // this.curve.path.push({
+                //     x: this.coords.x / this.elWidth,
+                //     y: this.coords.y / this.elHeight
+                // });
+                // this.curve.path.push(this.coords);
             }
-            if (w.requestAnimationFrame) requestAnimationFrame( this.drawing.bind(this) );
+            if (w.requestAnimationFrame) requestAnimationFrame(this.drawing.bind(this));
         },
 
         // 橡皮区域拖拽开始
@@ -560,8 +550,13 @@ import { N2SVG } from './components/n2svg/n2svg';
             var t = selDiv.offsetTop;
             var w = selDiv.offsetWidth;
             var h = selDiv.offsetHeight;
-            
-            this.checkInnerWriting({x: l, y: t, width: w, height: h});
+
+            this.checkInnerWriting({
+                x: l,
+                y: t,
+                width: w,
+                height: h
+            });
 
             this.el.parentNode.removeChild(selDiv);
             selDiv = null;
@@ -603,15 +598,27 @@ import { N2SVG } from './components/n2svg/n2svg';
          * @param {x, y, width, height} rect2 
          */
         isOverlap: function (rect1, rect2) {
-            var l1 = { x: rect1.x, y: rect1.y };
-            var r1 = { x: rect1.x + rect1.width, y: rect1.y + rect1.height };
-            var l2 = { x: rect2.x, y: rect2.y };
-            var r2 = { x: rect2.x + rect2.width, y: rect2.y + rect2.height };
+            var l1 = {
+                x: rect1.x,
+                y: rect1.y
+            };
+            var r1 = {
+                x: rect1.x + rect1.width,
+                y: rect1.y + rect1.height
+            };
+            var l2 = {
+                x: rect2.x,
+                y: rect2.y
+            };
+            var r2 = {
+                x: rect2.x + rect2.width,
+                y: rect2.y + rect2.height
+            };
             if (
-              l1.x > r2.x ||
-              l2.x > r1.x ||
-              l1.y > r2.y ||
-              l2.y > r1.y
+                l1.x > r2.x ||
+                l2.x > r1.x ||
+                l1.y > r2.y ||
+                l2.y > r1.y
             ) return false;
             return true;
         },
@@ -668,7 +675,7 @@ import { N2SVG } from './components/n2svg/n2svg';
             if (coords.y <= rectArea[2]) {
                 return false;
             }
-    
+
             return true;
         },
 
@@ -717,8 +724,7 @@ import { N2SVG } from './components/n2svg/n2svg';
                 width = this.el.width,
                 height = this.el.height,
                 left = rect.left,
-                top = rect.top
-            ;
+                top = rect.top;
             var x, y;
             if (e.touches && e.touches.length == 1) {
                 x = e.touches[0].pageX;
@@ -736,37 +742,12 @@ import { N2SVG } from './components/n2svg/n2svg';
                 y: y
             };
         },
-    
+
         getMidInputCoords: function (coords) {
             return {
-                x: this.coords.old.x + coords.x>>1,
-                y: this.coords.old.y + coords.y>>1
+                x: this.coords.old.x + coords.x >> 1,
+                y: this.coords.old.y + coords.y >> 1
             };
-        },
-
-        /**
-         * 绘制图片
-         * @param {url, x, y} imgInfo 
-         */
-        drawImg: function (imgInfo) {
-            if (this.info.other.innerImgData) {
-                this.info.other.innerImgData.push(imgInfo);
-            } else {
-                this.info.other.innerImgData = [imgInfo];
-            }
-            this.doDrawImg(this.info.other.innerImgData);
-        },
-
-        doDrawImg (data) {
-            var oldGlobalCompositeOperation = this.ctx.globalCompositeOperation;
-            this.ctx.globalCompositeOperation = "destination-over";
-
-            for (var i = 0, len = data.length; i < len; i++) {
-                var imgInfo = data[i];
-                this.ctx.drawImage(imgInfo.img, imgInfo.x, imgInfo.y, imgInfo.w, imgInfo.h);
-            }
-
-            this.ctx.globalCompositeOperation = oldGlobalCompositeOperation;
         },
 
         // 初始化白板内容
@@ -779,42 +760,39 @@ import { N2SVG } from './components/n2svg/n2svg';
             }
 
             var content = this.info.content;
-            
+
             for (var i = 0, len = content.length; i < len; i++) {
                 var oPathInfo = content[i];
                 if (!oPathInfo || !oPathInfo.path.length) continue;
-                var useRatio = oPathInfo.useRatio;
+
                 var arr = oPathInfo.path;
+
                 this.setUp(oPathInfo.canvasSettings);
-                this.ctx.beginPath();
+                this.beginPoint = arr[0];
+                console.log(this.beginPoint)
+                // this.ctx.beginPath();
+
                 for (var j = 0, length = arr.length; j < length; j++) {
+                    if (j > 0) {
+                        const lastTwoPoints = arr.slice(j - 1, j + 1);
+                        const controlPoint = lastTwoPoints[0];
+                        const endPoint = {
+                            x: (lastTwoPoints[0].x + lastTwoPoints[1].x) / 2,
+                            y: (lastTwoPoints[0].y + lastTwoPoints[1].y) / 2
+                        };
+                        // this.ctx.moveTo(this.beginPoint.x*this.elWidth, this.beginPoint.y*this.elHeight);
+                        // this.ctx.quadraticCurveTo(controlPoint.x*this.elWidth, controlPoint.y*this.elHeight, endPoint.x*this.elWidth, endPoint.y*this.elHeight);
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(this.beginPoint.x, this.beginPoint.y);
+                        this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y);
+                        this.ctx.stroke();
+                        this.ctx.closePath();
 
-                    var currentMidX,
-                        currentMidY,
-                        oldX,
-                        oldY,
-                        oldMidX,
-                        oldMidY;
-
-                    if (useRatio) {
-                        currentMidX = Number((arr[j].currentMidX * this.elWidth).toFixed(0));
-                        currentMidY = Number((arr[j].currentMidY * this.elHeight).toFixed(0));
-                        oldX = Number((arr[j].oldX * this.elWidth).toFixed(0));
-                        oldY = Number((arr[j].oldY * this.elHeight).toFixed(0));
-                        oldMidX = Number((arr[j].oldMidX * this.elWidth).toFixed(0));
-                        oldMidY = Number((arr[j].oldMidY * this.elHeight).toFixed(0));
-                    } else {
-                        currentMidX = arr[j].currentMidX;
-                        currentMidY = arr[j].currentMidY;
-                        oldX = arr[j].oldX;
-                        oldY = arr[j].oldY;
-                        oldMidX = arr[j].oldMidX;
-                        oldMidY = arr[j].oldMidY;
+                        this.beginPoint = endPoint;
                     }
-                    this.ctx.moveTo(currentMidX, currentMidY);
-                    this.ctx.quadraticCurveTo(oldX, oldY, oldMidX, oldMidY);
                 }
-                this.ctx.stroke();
+                // this.ctx.stroke();
+                // this.ctx.closePath();
             }
 
             // 恢复上一次的设置
@@ -828,7 +806,7 @@ import { N2SVG } from './components/n2svg/n2svg';
         }
     };
     /*************************************************************************/
-    
+
 
 
 
@@ -935,4 +913,3 @@ import { N2SVG } from './components/n2svg/n2svg';
     /***********************************************************************************/
 
 })(typeof window !== 'undefined' ? window : global, document);
-
