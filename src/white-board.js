@@ -422,7 +422,7 @@ import {
                 this.rubberStart(e, coords);
             } else {
                 this.coords = coords;
-                this.beginPoint = coords;
+                // this.beginPoint = coords;
                 this.curve = {
                     path: [],
                     canvasSettings: Object.assign({}, this.canvasSettings),
@@ -499,6 +499,8 @@ import {
                     this.ctx.closePath();
 
                     this.beginPoint = endPoint;
+                } else {
+                    this.beginPoint = this.curve.path[0];
                 }
 
                 // 存入当前轨迹点
@@ -769,12 +771,12 @@ import {
 
                 this.setUp(oPathInfo.canvasSettings);
                 this.beginPoint = arr[0];
-                console.log(this.beginPoint)
                 // this.ctx.beginPath();
-
+                
                 for (var j = 0, length = arr.length; j < length; j++) {
-                    if (j > 0) {
-                        const lastTwoPoints = arr.slice(j - 1, j + 1);
+                    if((j + 2) > arr.length) break;
+                    if (j > 1) {
+                        const lastTwoPoints = arr.slice(j, j + 2);
                         const controlPoint = lastTwoPoints[0];
                         const endPoint = {
                             x: (lastTwoPoints[0].x + lastTwoPoints[1].x) / 2,
