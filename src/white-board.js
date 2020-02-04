@@ -159,6 +159,33 @@ import '../lib/icon/iconfont.css';
 
             // 加纸按钮
             if (this.options.addBtn !== false) this.initAddBtn();
+
+
+            /**
+             * 测试
+             */
+            // 测试橡皮擦 && 画笔
+            /* var testBtn = document.createElement('button');
+            testBtn.innerText = "橡皮";
+            testBtn.style.position = 'absolute';
+            testBtn.style.zIndex = 999;
+            this.wrapDom.appendChild(testBtn);
+            var _self = this;
+            testBtn.onclick = function () {
+                // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
+                _self.canvasObj[0].setUp({ inputType: 'rubber'});
+            };
+            var testBtn = document.createElement('button');
+            testBtn.innerText = "画笔";
+            testBtn.style.position = 'absolute';
+            testBtn.style.left=100+'px';
+            testBtn.style.zIndex = 999;
+            this.wrapDom.appendChild(testBtn);
+            var _self = this;
+            testBtn.onclick = function () {
+                // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
+                _self.canvasObj[0].setUp({ inputType: 'fountain-pen', strokeStyle: '#FF9500' });
+            }; */
         },
 
         initAddBtn: function () {
