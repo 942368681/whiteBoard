@@ -8,15 +8,6 @@
 import './white-board.css';
 import '../lib/font/font';
 import '../lib/icon/iconfont.css';
-import {
-    Image
-} from './components/image/image';
-import {
-    Audio
-} from './components/audio/audio';
-import {
-    N2SVG
-} from './components/n2svg/n2svg';
 
 (function () {
     'use strict';
@@ -63,9 +54,9 @@ import {
         // 一张纸的默认高度
         this.pageHeight = o.pageHeight || this.wrapDom.getBoundingClientRect().height;
         // 总层级(画板层级数和多媒体控件数的总和)
-        this.zIndexTotal = this.getAllZindex(o.zIndexInfo),
-            // 画板各层级cavas对象实例
-            this.canvasObj = [];
+        this.zIndexTotal = this.getAllZindex(o.zIndexInfo);
+        // 画板各层级cavas对象实例
+        this.canvasObj = [];
         // 初始化布局
         this.initLayout();
     };
