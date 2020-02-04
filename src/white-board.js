@@ -106,10 +106,8 @@ import '../lib/icon/iconfont.css';
 
             for (var i = 0, len = item.content.length; i < len; i++) {
                 for (var j = 0, l = item.content[i].path.length; j < l; j++) {
-                    // 更新Y轴相关轨迹点比例
-                    item.content[i].path[j].currentMidY = (item.content[i].path[j].currentMidY * curHeight) / wrapH;
-                    item.content[i].path[j].oldY = (item.content[i].path[j].oldY * curHeight) / wrapH;
-                    item.content[i].path[j].oldMidY = (item.content[i].path[j].oldMidY * curHeight) / wrapH;
+                    // 更新Y轴轨迹点比例
+                    item.content[i].path[j].y = (item.content[i].path[j].y * curHeight) / wrapH;
                 }
                 // 更新轨迹矩形区域比例
                 item.content[i].rectArea = this.getRectArea(item.content[i].path, rubberRange, this.wrapDom);
@@ -413,7 +411,6 @@ import '../lib/icon/iconfont.css';
                 this.rubberStart(e, coords);
             } else {
                 this.coords = coords;
-                // this.beginPoint = coords;
                 this.curve = {
                     path: [],
                     canvasSettings: Object.assign({}, this.canvasSettings),
@@ -466,21 +463,20 @@ import '../lib/icon/iconfont.css';
         drawing: function () {
             if (this.isDrawing && this.canvasSettings.inputType !== 'rubber' && this.curve) {
                 // 绘制
-                this.curve.path.push(this.coords);
+                // 存入当前轨迹点
+                this.curve.path.push({
+                    x: this.coords.x / this.elWidth,
+                    y: this.coords.y / this.elHeight
+                });
                 if (this.curve.path.length > 3) {
                     const lastTwoPoints = this.curve.path.slice(-2);
-                    // const controlPoint = {
-                    //     x: lastTwoPoints[0].x * this.elWidth,
-                    //     y: lastTwoPoints[0].y * this.elHeight
-                    // }
-                    // const endPoint = {
-                    //     x: (lastTwoPoints[0].x * this.elWidth + lastTwoPoints[1].x * this.elWidth) / 2,
-                    //     y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
-                    // }
-                    const controlPoint = lastTwoPoints[0];
+                    const controlPoint = {
+                        x: lastTwoPoints[0].x * this.elWidth,
+                        y: lastTwoPoints[0].y * this.elHeight
+                    }
                     const endPoint = {
-                        x: (lastTwoPoints[0].x + lastTwoPoints[1].x) / 2,
-                        y: (lastTwoPoints[0].y + lastTwoPoints[1].y) / 2
+                        x: (lastTwoPoints[0].x * this.elWidth + lastTwoPoints[1].x * this.elWidth) / 2,
+                        y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
                     }
 
                     this.ctx.beginPath();
@@ -491,15 +487,11 @@ import '../lib/icon/iconfont.css';
 
                     this.beginPoint = endPoint;
                 } else {
-                    this.beginPoint = this.curve.path[0];
+                    this.beginPoint = {
+                        x: this.curve.path[0].x * this.elWidth,
+                        y: this.curve.path[0].y * this.elHeight
+                    };
                 }
-
-                // 存入当前轨迹点
-                // this.curve.path.push({
-                //     x: this.coords.x / this.elWidth,
-                //     y: this.coords.y / this.elHeight
-                // });
-                // this.curve.path.push(this.coords);
             }
             if (w.requestAnimationFrame) requestAnimationFrame(this.drawing.bind(this));
         },
@@ -704,12 +696,6 @@ import '../lib/icon/iconfont.css';
             return dx * dx + dy * dy;
         },
 
-        getCurrentCoords: function (obj) {
-            var _obj = JSON.stringify(obj);
-            var objClone = JSON.parse(_obj);
-            return objClone;
-        },
-
         getInputCoords: function (e) {
             e = e.originalEvent ? e.originalEvent : e;
             var
@@ -736,13 +722,6 @@ import '../lib/icon/iconfont.css';
             };
         },
 
-        getMidInputCoords: function (coords) {
-            return {
-                x: this.coords.old.x + coords.x >> 1,
-                y: this.coords.old.y + coords.y >> 1
-            };
-        },
-
         // 初始化白板内容
         drawingContent: function (canvasSettings) {
             this.clearAll();
@@ -761,20 +740,24 @@ import '../lib/icon/iconfont.css';
                 var arr = oPathInfo.path;
 
                 this.setUp(oPathInfo.canvasSettings);
-                this.beginPoint = arr[0];
-                // this.ctx.beginPath();
+                this.beginPoint = {
+                    x: arr[0].x * this.elWidth,
+                    y: arr[0].y * this.elHeight
+                };
                 
                 for (var j = 0, length = arr.length; j < length; j++) {
                     if((j + 2) > arr.length) break;
                     if (j > 1) {
                         const lastTwoPoints = arr.slice(j, j + 2);
-                        const controlPoint = lastTwoPoints[0];
+                        const controlPoint = {
+                            x: lastTwoPoints[0].x * this.elWidth,
+                            y: lastTwoPoints[0].y * this.elHeight
+                        }
                         const endPoint = {
-                            x: (lastTwoPoints[0].x + lastTwoPoints[1].x) / 2,
-                            y: (lastTwoPoints[0].y + lastTwoPoints[1].y) / 2
-                        };
-                        // this.ctx.moveTo(this.beginPoint.x*this.elWidth, this.beginPoint.y*this.elHeight);
-                        // this.ctx.quadraticCurveTo(controlPoint.x*this.elWidth, controlPoint.y*this.elHeight, endPoint.x*this.elWidth, endPoint.y*this.elHeight);
+                            x: (lastTwoPoints[0].x * this.elWidth + lastTwoPoints[1].x * this.elWidth) / 2,
+                            y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
+                        }
+
                         this.ctx.beginPath();
                         this.ctx.moveTo(this.beginPoint.x, this.beginPoint.y);
                         this.ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y);
@@ -784,8 +767,6 @@ import '../lib/icon/iconfont.css';
                         this.beginPoint = endPoint;
                     }
                 }
-                // this.ctx.stroke();
-                // this.ctx.closePath();
             }
 
             // 恢复上一次的设置
