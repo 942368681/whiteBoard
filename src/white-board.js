@@ -26,9 +26,8 @@ import '../lib/icon/iconfont.css';
             var now = new Date().getTime();
             var nextTime = Math.max(lastTime + 16, now);
             return setTimeout(function () {
-                    callback(lastTime = nextTime);
-                },
-                nextTime - now);
+                callback(lastTime = nextTime);
+            }, nextTime - now);
         };
         window.cancelAnimationFrame = clearTimeout;
     }
@@ -45,6 +44,8 @@ import '../lib/icon/iconfont.css';
         o.zIndexInfo.sort(function (prev, next) {
             return next.zIndex - prev.zIndex
         });
+        // 当前环境是否支持Pointer事件
+        this.pointerSupport = window.PointerEvent ? true : false;
         // 初始参数赋值
         this.options = o;
         // 父级容器dom
@@ -324,37 +325,52 @@ import '../lib/icon/iconfont.css';
         // 画板事件绑定
         initDrawEvent: function () {
             var _self = this;
-            // touch事件
-            this.el.addEventListener('touchstart', function (e) {
-                _self.touchStart.call(_self, e, _self.getInputCoords(e));
-            }, {
-                passive: false
-            });
+            if (this.superClass.pointerSupport) { 
+                this.el.addEventListener('pointerdown', function (e) {
+                    _self.touchStart.call(_self, e, _self.getInputCoords(e));
+                }, false);
 
-            w.addEventListener('touchmove', function (e) {
-                _self.touchMove.call(_self, e, _self.getInputCoords(e));
-            }, {
-                passive: false
-            });
+                w.addEventListener('pointermove', function (e) {
+                    _self.touchMove.call(_self, e, _self.getInputCoords(e));
+                }, false);
 
-            w.addEventListener('touchend', function (e) {
-                _self.touchEnd.call(_self, e);
-            }, {
-                passive: false
-            });
+                w.addEventListener('pointerup', function (e) {
+                    _self.touchEnd.call(_self, e);
+                }, false);
+            } else {
+                console.log('Pointer events are not supported!');
+                // touch事件
+                this.el.addEventListener('touchstart', function (e) {
+                    _self.touchStart.call(_self, e, _self.getInputCoords(e));
+                }, {
+                    passive: false
+                });
 
-            // mouse事件
-            this.el.addEventListener('mousedown', function (e) {
-                _self.touchStart.call(_self, e, _self.getInputCoords(e));
-            });
+                w.addEventListener('touchmove', function (e) {
+                    _self.touchMove.call(_self, e, _self.getInputCoords(e));
+                }, {
+                    passive: false
+                });
 
-            w.addEventListener('mousemove', function (e) {
-                _self.touchMove.call(_self, e, _self.getInputCoords(e));
-            });
+                w.addEventListener('touchend', function (e) {
+                    _self.touchEnd.call(_self, e);
+                }, {
+                    passive: false
+                });
 
-            w.addEventListener('mouseup', function (e) {
-                _self.touchEnd.call(_self, e);
-            });
+                // mouse事件
+                this.el.addEventListener('mousedown', function (e) {
+                    _self.touchStart.call(_self, e, _self.getInputCoords(e));
+                });
+                
+                w.addEventListener('mousemove', function (e) {
+                    _self.touchMove.call(_self, e, _self.getInputCoords(e));
+                });
+
+                w.addEventListener('mouseup', function (e) {
+                    _self.touchEnd.call(_self, e);
+                });
+            }
 
             // 绑定回调机制
             this.bindCbFunc(this.el, this);
@@ -363,22 +379,35 @@ import '../lib/icon/iconfont.css';
         },
         // 回调监听绑定方法
         bindCbFunc: function (el, _self) {
-            // 监听输入完毕，触发异步回调
-            if (_self.watcher && _self.watcher.cb && typeof _self.watcher.cb === "function") {
-                el.addEventListener('touchend', _self.debounce(_self.watcher.cb, _self.watcher.wait));
-                el.addEventListener('mouseup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
-            }
-
-            // 监听输入开始，触发同步回调(兼容事件只执行一次)
-            if (_self.writeCallBack && _self.writeCallBack.cb && typeof _self.writeCallBack.cb === "function") {
-                el.addEventListener('touchstart', function fn(e) {
-                    if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('touchstart', fn);
-                    return _self.writeCallBack.cb();
-                });
-                el.addEventListener('mousedown', function fn(e) {
-                    if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('mousedown', fn);
-                    return _self.writeCallBack.cb();
-                });
+            if (this.superClass.pointerSupport) {
+                // 监听输入完毕，触发异步回调
+                if (_self.watcher && _self.watcher.cb && typeof _self.watcher.cb === "function") {
+                    el.addEventListener('pointerup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
+                }
+                // 监听输入开始，触发同步回调(兼容事件只执行一次)
+                if (_self.writeCallBack && _self.writeCallBack.cb && typeof _self.writeCallBack.cb === "function") {
+                    el.addEventListener('pointerdown', function fn(e) {
+                        if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('pointerdown', fn);
+                        return _self.writeCallBack.cb();
+                    });
+                }
+            } else {
+                // 监听输入完毕，触发异步回调
+                if (_self.watcher && _self.watcher.cb && typeof _self.watcher.cb === "function") {
+                    el.addEventListener('touchend', _self.debounce(_self.watcher.cb, _self.watcher.wait));
+                    el.addEventListener('mouseup', _self.debounce(_self.watcher.cb, _self.watcher.wait));
+                }
+                // 监听输入开始，触发同步回调(兼容事件只执行一次)
+                if (_self.writeCallBack && _self.writeCallBack.cb && typeof _self.writeCallBack.cb === "function") {
+                    el.addEventListener('touchstart', function fn(e) {
+                        if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('touchstart', fn);
+                        return _self.writeCallBack.cb();
+                    });
+                    el.addEventListener('mousedown', function fn(e) {
+                        if (_self.writeCallBack.type && _self.writeCallBack.type === 'once') e.target.removeEventListener('mousedown', fn);
+                        return _self.writeCallBack.cb();
+                    });
+                }
             }
         },
         // 回调方法执行
@@ -484,7 +513,7 @@ import '../lib/icon/iconfont.css';
             }
             // console.log(this.info)
             // console.log(this.info.content);
-            console.log(JSON.stringify(this.info.content));
+            // console.log(JSON.stringify(this.info.content));
         },
 
         drawing: function () {
@@ -493,7 +522,8 @@ import '../lib/icon/iconfont.css';
                 // 存入当前轨迹点
                 this.curve.path.push({
                     x: this.coords.x / this.elWidth,
-                    y: this.coords.y / this.elHeight
+                    y: this.coords.y / this.elHeight,
+                    pressure: this.coords.pressure
                 });
                 if (this.curve.path.length > 3) {
                     const lastTwoPoints = this.curve.path.slice(-2);
@@ -745,7 +775,8 @@ import '../lib/icon/iconfont.css';
             y *= (height / rect.height);
             return {
                 x: x,
-                y: y
+                y: y,
+                pressure: e.pressure ? e.pressure : 0.5
             };
         },
 
@@ -771,9 +802,9 @@ import '../lib/icon/iconfont.css';
                     x: arr[0].x * this.elWidth,
                     y: arr[0].y * this.elHeight
                 };
-                
+
                 for (var j = 0, length = arr.length; j < length; j++) {
-                    if((j + 2) > arr.length) break;
+                    if ((j + 2) > arr.length) break;
                     if (j > 1) {
                         const lastTwoPoints = arr.slice(j, j + 2);
                         const controlPoint = {

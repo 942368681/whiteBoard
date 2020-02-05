@@ -15,6 +15,7 @@
     -moz-transform: translate3d(0, 0, 0);
     -ms-transform: translate3d(0, 0, 0);
     transform: translate3d(0, 0, 0);
+    touch-action: none;
 }
 
 .board-add-page {
