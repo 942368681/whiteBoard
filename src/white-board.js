@@ -307,12 +307,16 @@ import '../lib/icon/iconfont.css';
                 inputType: obj.inputType || 'fountain-pen'
             };
         },
-        // 当前画布设置更改
+        // 当前画布设置更改（基础属性）
         setUp: function (settings) {
             for (var key in settings) {
                 this.canvasSettings[key] = settings[key];
             }
             this.initCtx();
+        },
+        // 根据压感参数设置当前点的粗细
+        setPointSize: function (baseLineWidth, pressure) {
+            this.ctx.lineWidth = baseLineWidth * pressure;
         },
         // 初始化画板功能
         initCtx: function () {
@@ -513,7 +517,7 @@ import '../lib/icon/iconfont.css';
             }
             // console.log(this.info)
             // console.log(this.info.content);
-            // console.log(JSON.stringify(this.info.content));
+            console.log(JSON.stringify(this.info.content));
         },
 
         drawing: function () {
@@ -815,6 +819,8 @@ import '../lib/icon/iconfont.css';
                             x: (lastTwoPoints[0].x * this.elWidth + lastTwoPoints[1].x * this.elWidth) / 2,
                             y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
                         }
+
+                        this.setPointSize(oPathInfo.canvasSettings.lineWidth, arr[j].pressure);
 
                         this.ctx.beginPath();
                         this.ctx.moveTo(this.beginPoint.x, this.beginPoint.y);
