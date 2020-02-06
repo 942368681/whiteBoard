@@ -1,13 +1,14 @@
 /**
  *  @brief     白板组件
  *  @author    sfl
- *  @version   2.6.2
+ *  @version   2.6.2 老版本（2.6.2）
  *  @date      2019.4
  */
 
 import './white-board.css';
 import '../lib/font/font';
 import '../lib/icon/iconfont.css';
+// import '../lib/pressure/pressure';
 
 (function () {
     'use strict';
@@ -267,6 +268,7 @@ import '../lib/icon/iconfont.css';
      * @param {*} superClass WhiteBoard对象
      */
     var Canvas = function (el, obj, superClass) {
+        // this.pressure = 1;
         this.timeout = null;
         this.superClass = superClass;
         this.el = el;
@@ -329,6 +331,18 @@ import '../lib/icon/iconfont.css';
         // 画板事件绑定
         initDrawEvent: function () {
             var _self = this;
+
+            /* console.log(w.WhiteBoardPressure);
+            w.WhiteBoardPressure.set('#' + this.el.id, {
+                change: function(force){
+                    _self.pressure = force;
+                }
+            }, {
+                polyfillSpeedUp: 500,
+                polyfillSpeedDown: 500
+            }); */
+            
+
             if (this.superClass.pointerSupport) { 
                 this.el.addEventListener('pointerdown', function (e) {
                     _self.touchStart.call(_self, e, _self.getInputCoords(e));
@@ -466,7 +480,7 @@ import '../lib/icon/iconfont.css';
                 this.isDrawing = false;
                 return;
             };
-
+            
             if (this.canvasSettings.inputType === 'rubber') {
                 this.rubberStart(e, coords);
             } else {
@@ -490,7 +504,7 @@ import '../lib/icon/iconfont.css';
                 return;
             };
             if (!this.isDrawing) return;
-
+            
             this.coords = coords;
 
             if (this.canvasSettings.inputType === 'rubber') {
@@ -528,6 +542,7 @@ import '../lib/icon/iconfont.css';
                     x: this.coords.x / this.elWidth,
                     y: this.coords.y / this.elHeight,
                     pressure: this.coords.pressure
+                    // pressure: this.pressure
                 });
                 if (this.curve.path.length > 3) {
                     const lastTwoPoints = this.curve.path.slice(-2);
@@ -539,6 +554,8 @@ import '../lib/icon/iconfont.css';
                         x: (lastTwoPoints[0].x * this.elWidth + lastTwoPoints[1].x * this.elWidth) / 2,
                         y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
                     }
+
+                    this.setPointSize(this.canvasSettings.lineWidth, this.coords.pressure);
 
                     this.ctx.beginPath();
                     this.ctx.moveTo(this.beginPoint.x, this.beginPoint.y);
@@ -780,7 +797,7 @@ import '../lib/icon/iconfont.css';
             return {
                 x: x,
                 y: y,
-                pressure: e.pressure ? e.pressure : 0.5
+                pressure: e.pointerType === 'pen' ? e.pressure : 1
             };
         },
 
