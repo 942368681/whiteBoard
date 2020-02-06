@@ -269,6 +269,7 @@ import '../lib/icon/iconfont.css';
      */
     var Canvas = function (el, obj, superClass) {
         // this.pressure = 1;
+        this.prevPressure = null;
         this.timeout = null;
         this.superClass = superClass;
         this.el = el;
@@ -555,7 +556,10 @@ import '../lib/icon/iconfont.css';
                         y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
                     }
 
-                    this.setPointSize(this.canvasSettings.lineWidth, this.coords.pressure);
+                    if (!this.prevPressure || this.prevPressure !== this.coords.pressure) {
+                        this.prevPressure = this.coords.pressure;
+                        this.setPointSize(this.canvasSettings.lineWidth, this.coords.pressure);
+                    }
 
                     this.ctx.beginPath();
                     this.ctx.moveTo(this.beginPoint.x, this.beginPoint.y);
@@ -811,6 +815,7 @@ import '../lib/icon/iconfont.css';
             }
 
             var content = this.info.content;
+            var prevPressure = null;
 
             for (var i = 0, len = content.length; i < len; i++) {
                 var oPathInfo = content[i];
@@ -837,7 +842,10 @@ import '../lib/icon/iconfont.css';
                             y: (lastTwoPoints[0].y * this.elHeight + lastTwoPoints[1].y * this.elHeight) / 2
                         }
 
-                        this.setPointSize(oPathInfo.canvasSettings.lineWidth, arr[j].pressure);
+                        if (!prevPressure || prevPressure !== arr[j].pressure) {
+                            prevPressure = arr[j].pressure;
+                            this.setPointSize(oPathInfo.canvasSettings.lineWidth, arr[j].pressure);
+                        }
 
                         this.ctx.beginPath();
                         this.ctx.moveTo(this.beginPoint.x, this.beginPoint.y);
