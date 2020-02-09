@@ -167,7 +167,7 @@ import '../lib/icon/iconfont.css';
              * 测试
              */
             // 测试橡皮擦 && 画笔
-            /* var testBtn = document.createElement('button');
+            var testBtn = document.createElement('button');
             testBtn.innerText = "橡皮";
             testBtn.style.position = 'absolute';
             testBtn.style.zIndex = 999;
@@ -187,7 +187,7 @@ import '../lib/icon/iconfont.css';
             testBtn.onclick = function () {
                 // _self.canvasObj[0].setUp({ inputType: 'fluorescent-pen', strokeStyle: '#FFF4DA' });
                 _self.canvasObj[0].setUp({ inputType: 'fountain-pen', strokeStyle: '#FF9500' });
-            }; */
+            };
         },
 
         initAddBtn: function () {
@@ -705,19 +705,11 @@ import '../lib/icon/iconfont.css';
             var pathArr = oContent.path;
             for (var i = 0, len = pathArr.length; i < len; i++) {
                 var oPoint = pathArr[i];
-                var coords1 = {
-                    x: Number((oPoint.currentMidX * this.elWidth).toFixed(0)),
-                    y: Number((oPoint.currentMidY * this.elHeight).toFixed(0))
+                var coords = {
+                    x: oPoint.x * this.elWidth,
+                    y: oPoint.y * this.elHeight
                 };
-                var coords2 = {
-                    x: Number((oPoint.oldX * this.elWidth).toFixed(0)),
-                    y: Number((oPoint.oldY * this.elHeight).toFixed(0))
-                };
-                var coords3 = {
-                    x: Number((oPoint.oldMidX * this.elWidth).toFixed(0)),
-                    y: Number((oPoint.oldMidY * this.elHeight).toFixed(0))
-                };
-                if (this.isFitPath(coords1, rectArea) || this.isFitPath(coords2, rectArea) || this.isFitPath(coords3, rectArea)) {
+                if (this.isFitPath(coords, rectArea)) {
                     return true;
                 }
             }
@@ -744,38 +736,6 @@ import '../lib/icon/iconfont.css';
             }
 
             return true;
-        },
-
-        // 根据坐标点匹配选中的一条轨迹
-        matchPath: function (coords, pathArr) {
-            var _self = this;
-
-            var bool = pathArr.some(function (e) {
-                return _self.distanceOfPoint2Line(coords.x, coords.y, e.currentMidX, e.currentMidY, e.oldMidX, e.oldMidY) <= _self.squareOfRubberRange;
-            });
-
-            return bool;
-        },
-
-        // 计算某点到两点间线段的垂直距离
-        distanceOfPoint2Line: function (x0, y0, x1, y1, x2, y2) {
-            var x = x1;
-            var y = y1;
-            var dx = x2 - x;
-            var dy = y2 - y;
-            if (dx !== 0 || dy !== 0) {
-                var t = ((x0 - x) * dx + (y0 - y) * dy) / (dx * dx + dy * dy);
-                if (t > 1) {
-                    x = x2;
-                    y = y2;
-                } else if (t > 0) {
-                    x += dx * t;
-                    y += dy * t;
-                }
-            }
-            dx = x0 - x;
-            dy = y0 - y;
-            return dx * dx + dy * dy;
         },
 
         getInputCoords: function (e) {
